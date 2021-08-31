@@ -99,7 +99,6 @@ class CfgMain(wx.Frame):
 		self.Bind(wx.EVT_LISTBOX, self.onFile, self.lbFiles)
 		self.Bind(wx.EVT_LISTBOX_DCLICK, self.onFileDClick, self.lbFiles)
 		self.Bind(wx.EVT_CHECKLISTBOX, self.onFileCheck, self.lbFiles)
-		self.lbFiles.Bind(wx.EVT_RIGHT_DOWN, self.onFileRight)
 		hsz.Add(self.lbFiles)
 		
 		hsz.AddSpacer(20)
@@ -204,11 +203,6 @@ class CfgMain(wx.Frame):
 			self.loadProperties([index])
 		else:
 			self.loadProperties(self.getCheckedList())
-			
-	def onFileRight(self, evt):
-		item = self.lbFiles.HitTest(evt.GetPosition())
-		print("HitTest: %d\n" % item)
-		print(self.nchecked)
 		
 	def onBAll(self, _):
 		for i in range(len(self.fl)):
@@ -279,14 +273,11 @@ class CfgMain(wx.Frame):
 		else:
 			idxl = self.getCheckedList()
 			
-		print(str(idxl))
-			
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
 			for label in al:
 				if pgl[label] != "<keep>" and pgl[label] != al[label]:
-					print("update %s to %s" % (al[label], pgl[label]))
 					self.cfg.setAttribute(cat, fn, label, pgl[label])
 	
 		self.cfg.writeModified()				

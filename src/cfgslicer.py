@@ -62,7 +62,6 @@ class CfgSlicer:
 		for cat in self.fileMap:
 			for f in self.fileMap[cat]:
 				if self.fileMap[cat][f].isModified():
-					print("modified: %s %s" % (cat, f))
 					return True
 				
 		return False
@@ -92,7 +91,6 @@ class CfgSlicer:
 		for cat in self.fileMap:
 			for f in self.fileMap[cat]:
 				if self.fileMap[cat][f].isModified():
-					print("writing modified: %s %s" % (cat, f))
 					self.writeProperties(cat, f)
 	
 	def getAttribute(self, cat, fn, name):
