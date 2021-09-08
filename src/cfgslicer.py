@@ -18,6 +18,10 @@ class CfgFile:
 	def getAttributes(self):
 		return self.attributes
 	
+	def setAttributes(self, adict):
+		self.attributes = adict.copy()
+		self.setModified()
+	
 	def getAttribute(self, name):
 		try:
 			return self.attributes[name]
@@ -38,6 +42,7 @@ class CfgSlicer:
 		self.root = root
 		self.dirs = dirs
 		self.loadAttributes()
+		self.deletedFiles = []
 		
 	def loadAttributes(self):
 		self.fileMap = {}
@@ -87,11 +92,43 @@ class CfgSlicer:
 				
 		self.fileMap[cat][fn].setModified(False)
 		
+	def getRoorDir(self):
+		return self.root
+	
+	def getCatRoot(self, cat):
+		return os.path.join(self.root, cat)
+		
 	def writeModified(self):
 		for cat in self.fileMap:
 			for f in self.fileMap[cat]:
 				if self.fileMap[cat][f].isModified():
 					self.writeProperties(cat, f)
+					
+	def copyFile(self, cat, fn, nfn, force=False):
+		if cat not in self.fileMap:
+			raise CfgUnknownCategory(cat)
+		
+		if fn not in self.fileMap[cat]:
+			raise CfgUnknownFile(fn)
+				
+		if nfn in self.fileMap[cat]:
+			if not force:
+				raise CfgDuplicateFile(nfn)
+			self.fileMap[cat][nfn].setAttributes(self.fileMap[cat][fn].getAttributes().copy())
+		else:
+			attrdict = self.fileMap[cat][fn].getAttributes().copy()
+			self.fileMap[cat][nfn] = CfgFile(attrdict)
+
+		self.writeProperties(cat, nfn)
+		self.fileMap[cat][nfn].setModified(False)
+		
+	def deleteFile(self, cat, fn):
+		self.deletedFiles.append(fn)
+		del(self.fileMap[cat][fn])
+		
+		fqn = os.path.join(self.root, cat, fn)
+		print("deleting file (%s)" % fqn)
+		os.unlink(fqn)
 	
 	def getAttribute(self, cat, fn, name):
 		if cat not in self.fileMap:
@@ -124,6 +161,6 @@ class CfgSlicer:
 		if cat not in self.fileMap:
 			raise CfgUnknownCategory(cat)
 		
-		return list(self.fileMap[cat].keys())
+		return sorted(list(self.fileMap[cat].keys()))
 		
 		

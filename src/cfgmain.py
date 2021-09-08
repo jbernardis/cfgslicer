@@ -1,8 +1,11 @@
+import os
 import wx
 import wx.propgrid as wxpg
 
 from settings import Settings
 from cfgslicer import CfgSlicer
+from inifile import IniFileDlg
+
 #from cfgexceptions import CfgUnknownAttribute, CfgUnknownCategory, CfgUnknownFile
 
 class SingleChoiceDialogAdapter(wxpg.PGEditorDialogAdapter):
@@ -45,6 +48,7 @@ class CfgMain(wx.Frame):
 		
 		self.nchecked = 0
 		self.propertiesChanged = False
+		self.selected = None
 		
 		self.titleString = "Slicer Configuration Manager"
 		self.setTitle()
@@ -90,6 +94,18 @@ class CfgMain(wx.Frame):
 		self.bNone = wx.Button(self, wx.ID_ANY, "None")
 		self.Bind(wx.EVT_BUTTON, self.onBNone, self.bNone)
 		vsz.Add(self.bNone)
+		vsz.AddSpacer(30)
+		
+		self.bCopy = wx.Button(self, wx.ID_ANY, "Copy")
+		self.Bind(wx.EVT_BUTTON, self.onBCopy, self.bCopy)
+		vsz.Add(self.bCopy)
+		self.bCopy.Enable(False)
+		vsz.AddSpacer(10)
+		
+		self.bDel = wx.Button(self, wx.ID_ANY, "Delete")
+		self.Bind(wx.EVT_BUTTON, self.onBDel, self.bDel)
+		vsz.Add(self.bDel)
+		self.bDel.Enable(False)
 		vsz.AddSpacer(10)
 		
 		hsz.Add(vsz)
@@ -175,6 +191,9 @@ class CfgMain(wx.Frame):
 		if self.nchecked == 0:	
 			index = evt.GetSelection()
 			self.loadProperties([index])
+			self.selected = index
+			self.allowCopy()
+			self.allowDelete()
 
 	def onFileCheck(self, evt):
 		index = evt.GetSelection()
@@ -186,8 +205,14 @@ class CfgMain(wx.Frame):
 		
 		if self.nchecked == 0:
 			self.loadProperties([index])
+			self.selected = index
+			self.allowCopy()
+			self.allowDelete()
 		else:
 			self.loadProperties(self.getCheckedList())
+			self.selected = None
+			self.allowCopy(False)
+			self.allowDelete(False)
 			
 	def onFileDClick(self, evt):
 		index = evt.GetSelection()
@@ -201,20 +226,108 @@ class CfgMain(wx.Frame):
 		
 		if self.nchecked == 0:
 			self.loadProperties([index])
+			self.selected = index
+			self.allowCopy()
+			self.allowDelete()
 		else:
 			self.loadProperties(self.getCheckedList())
+			self.selected = None
+			self.allowCopy(False)
+			self.allowDelete(False)
 		
 	def onBAll(self, _):
 		for i in range(len(self.fl)):
 			self.lbFiles.Check(i, True)
 		self.nchecked = len(self.fl)
 		self.loadProperties(self.getCheckedList())
+		self.selected = None
+		self.allowCopy(False)
+		self.allowDelete(False)
 		
 	def onBNone(self, _):
 		for i in range(len(self.fl)):
 			self.lbFiles.Check(i, False)
+			
 		self.nchecked = 0
-		self.loadProperties(self.getCheckedList())
+		self.loadProperties([])
+
+		index = self.lbFiles.GetSelection()
+		if index == wx.NOT_FOUND:
+			self.selected = None
+			self.allowCopy(False)
+			self.allowDelete(False)
+		else:
+			self.selected = index
+			self.allowCopy(True)
+			self.allowDelete(True)
+			
+	def allowCopy(self, flag=True):
+		if self.propertiesChanged:
+			self.bCopy.Enable(False)
+		self.bCopy.Enable(flag)
+			
+	def allowDelete(self, flag=True):
+		if len(self.fl) <= 1 or self.propertiesChanged:
+			self.bDel.Enable(False)
+		else:
+			self.bDel.Enable(flag)
+			
+	def onBCopy(self, _):
+		cat = self.currentCategory
+		fl = self.cfg.getFileList(cat)
+		
+		dlg = IniFileDlg(self, cat, fl)
+		rc = dlg.ShowModal()
+		if rc == wx.ID_OK:
+			path = dlg.getChoice()
+
+		dlg.Destroy()
+		
+		if rc != wx.ID_OK:
+			return
+
+		fn = self.lbFiles.GetString(self.selected)
+		self.cfg.copyFile(cat, fn, path, force=True)
+		self.loadCategory(cat)
+		fl = self.cfg.getFileList(cat)
+		idx = fl.index(path)
+
+		self.lbFiles.SetSelection(idx)
+		self.loadProperties([idx])
+		
+	def onBDel(self, _):
+		fn = self.lbFiles.GetString(self.selected)
+		dlg = wx.MessageDialog(self,
+			"Delete %s %s?" % (self.currentCategory, fn),
+			"Delete File",
+			wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+		rc = dlg.ShowModal()
+		dlg.Destroy()
+		if rc != wx.ID_YES:
+			return
+		
+		self.cfg.deleteFile(self.currentCategory, fn)
+
+		self.loadCategory(self.currentCategory)		
+		fl = self.cfg.getFileList(self.currentCategory)
+		idx = self.selected
+		if idx >= len(fl):
+			idx = len(fl)-1
+			
+		if idx < 0:
+			self.selected = None
+			self.lbFiles.SetSelection(wx.NOT_FOUND)
+			self.loadProperties([])
+			self.allowCopy(False)
+			self.allowDelete(False)
+			
+		else:
+			self.selected = idx
+			self.lbFiles.SetSelection(idx)
+			self.loadProperties([idx])
+			if len(fl) == 1:
+				self.allowDelete(False)
+		
 		
 	def getCheckedList(self):
 		cl = []
@@ -255,10 +368,17 @@ class CfgMain(wx.Frame):
 		self.propertiesChanged = flag
 		self.bSave.Enable(flag)
 		self.bCancel.Enable(flag)
+		if flag:
+			self.allowCopy(False)
+			self.allowDelete(False)
+		elif self.nchecked == 0:	
+			self.allowCopy(True)
+			self.allowDelete(True)
+			
 		self.lbFiles.Enable(not flag)
 		self.chCategory.Enable(not flag)
 		self.setTitle()
-			
+		
 	def onSave(self, _):
 		it = self.pg.GetIterator()
 		pgl = {}
@@ -276,6 +396,7 @@ class CfgMain(wx.Frame):
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
+
 			for label in al:
 				if pgl[label] != "<keep>" and pgl[label] != al[label]:
 					self.cfg.setAttribute(cat, fn, label, pgl[label])
