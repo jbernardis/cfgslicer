@@ -42,15 +42,16 @@ class CfgSlicer:
 		self.root = root
 		self.dirs = dirs
 		self.loadAttributes()
-		self.deletedFiles = []
 		
 	def loadAttributes(self):
 		self.fileMap = {}
+		self.fileExt = {}
 		for d in self.dirs:
 			path = os.path.join(self.root, d)
-			fl = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.endswith(".ini")]
+			fl = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith(".ini")]
 
 			fm = {}
+			fx = {}
 			for fp in fl:
 				parser = RawConfigParser()
 				with open(fp) as stream:
@@ -59,9 +60,11 @@ class CfgSlicer:
 				fa = {}					
 				for k, v in parser.items("top"):
 					fa[k] = v
-				fm[os.path.basename(fp)] = CfgFile(fa)
+				fm[os.path.splitext(os.path.basename(fp))[0]] = CfgFile(fa)
+				fx[os.path.splitext(os.path.basename(fp))[0]] = os.path.splitext(os.path.basename(fp))[1]
 				
-			self.fileMap[d] = fm	
+			self.fileMap[d] = fm
+			self.fileExt[d] = fx	
 			
 	def isAnyModified(self):
 		for cat in self.fileMap:
@@ -78,7 +81,7 @@ class CfgSlicer:
 		if fn not in self.fileMap[cat]:
 			raise CfgUnknownFile(fn)
 				
-		fqn = os.path.join(self.root, cat, fn)
+		fqn = os.path.join(self.root, cat, fn+self.fileExt[cat][fn])
 		attrdict = self.fileMap[cat][fn].getAttributes()
 		
 		with open(fqn, "w") as ofp:
@@ -118,17 +121,17 @@ class CfgSlicer:
 		else:
 			attrdict = self.fileMap[cat][fn].getAttributes().copy()
 			self.fileMap[cat][nfn] = CfgFile(attrdict)
+			self.fileExt[cat][nfn] = ".ini"
 
 		self.writeProperties(cat, nfn)
 		self.fileMap[cat][nfn].setModified(False)
 		
 	def deleteFile(self, cat, fn):
-		self.deletedFiles.append(fn)
-		del(self.fileMap[cat][fn])
-		
-		fqn = os.path.join(self.root, cat, fn)
-		print("deleting file (%s)" % fqn)
+		fqn = os.path.join(self.root, cat, fn + self.fileExt[cat][fn])
 		os.unlink(fqn)
+		
+		del(self.fileMap[cat][fn])
+		del(self.fileExt[cat][fn])
 	
 	def getAttribute(self, cat, fn, name):
 		if cat not in self.fileMap:

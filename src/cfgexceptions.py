@@ -13,3 +13,7 @@ class CfgDuplicateFile(Exception):
 class CfgUnknownAttribute(Exception):
 	def __init__(self, attribute):
 		self.attribute = attribute
+		
+class CfgInvalidColor(Exception):
+	def __init__(self):
+		pass

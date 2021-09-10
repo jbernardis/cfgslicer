@@ -1,3 +1,5 @@
-1. categorize attributes
-2. remove ini from file names in listbox
-3. add tools like color picker
+have attribute types - color, perextruder, choice (patterns, etc)
+       
+add tools like color picker, pattern picker, etc -
+
+handle multiple extruders (low priority)

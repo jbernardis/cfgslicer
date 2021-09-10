@@ -63,8 +63,6 @@ class IniFileDlg(wx.Dialog):
 			return
 		
 		nfnl = nfn.lower()
-		if not nfnl.endswith(".ini"):
-			nfnl += ".ini"
 		flist = [x.lower() for x in self.flist]
 		if nfnl in flist:
 			dlg = wx.MessageDialog(self,
@@ -85,8 +83,4 @@ class IniFileDlg(wx.Dialog):
 		if self.cbFiles.IsTextEmpty():
 			return None
 						
-		nfn = self.cbFiles.GetValue()
-		if not nfn.lower().endswith(".ini"):
-			nfn += ".ini"
-
-		return nfn
+		return self.cbFiles.GetValue()

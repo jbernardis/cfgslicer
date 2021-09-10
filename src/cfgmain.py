@@ -1,12 +1,35 @@
-import os
+import json
 import wx
 import wx.propgrid as wxpg
 
 from settings import Settings
 from cfgslicer import CfgSlicer
 from inifile import IniFileDlg
+from cfgexceptions import CfgInvalidColor
 
-#from cfgexceptions import CfgUnknownAttribute, CfgUnknownCategory, CfgUnknownFile
+STRINGTYPE = "string"
+COLORTYPE = "color"
+
+def parseColorValue(pv):
+	if pv is None:
+		raise CfgInvalidColor
+	
+	if len(pv) != 7:
+		raise CfgInvalidColor
+	
+	if pv[0] != '#':
+		raise CfgInvalidColor
+	
+	try:
+		int(pv[1:], 16)
+	except ValueError:
+		raise CfgInvalidColor	
+	
+	r = int(pv[1:3], 16)
+	g = int(pv[3:5], 16)
+	b = int(pv[5:7], 16)
+	
+	return r, g, b
 
 class SingleChoiceDialogAdapter(wxpg.PGEditorDialogAdapter):
 	def __init__(self, choices, message, caption):
@@ -25,8 +48,8 @@ class SingleChoiceDialogAdapter(wxpg.PGEditorDialogAdapter):
 		return False;
 	
 class SingleChoiceProperty(wxpg.StringProperty):
-	def __init__(self, label, value, choices, message, caption):
-		wxpg.StringProperty.__init__(self, label, label, value)
+	def __init__(self, label, name, value, choices, message, caption):
+		wxpg.StringProperty.__init__(self, label, name, value)
 		
 		self.dialog_choices = [x for x in choices]
 		self.message = message
@@ -37,14 +60,64 @@ class SingleChoiceProperty(wxpg.StringProperty):
 
 	def GetEditorDialog(self):
 		return SingleChoiceDialogAdapter(self.dialog_choices, self.message, self.caption)
+	
+class ColorDialogAdapter(wxpg.PGEditorDialogAdapter):
+	def __init__(self, prop):
+		wxpg.PGEditorDialogAdapter.__init__(self)
+		self.prop = prop
+
+	def DoShowDialog(self, propGrid, _):
+		cval = self.prop.GetValue()
+		try:
+			r, g, b = parseColorValue(cval)
+		except CfgInvalidColor:
+			r = 0
+			g = 0
+			b = 0
+			
+		dlg = wx.ColourDialog(None)
+		dlg.GetColourData().SetChooseFull(True)
+		dlg.GetColourData().SetColour(wx.Colour(r, g, b, wx.ALPHA_OPAQUE))
+
+		rc = dlg.ShowModal()
+		if rc == wx.ID_OK:
+			data = dlg.GetColourData()
+			color = data.GetColour()
+			r = color.Red()
+			g = color.Green()
+			b = color.Blue()
+
+		dlg.Destroy()
+		
+		if rc != wx.ID_OK:
+			return False
+		
+		cval = "#%02X%02X%02X" % (r, g, b)
+		self.SetValue(cval)
+		return True
+
+class ColorProperty(wxpg.StringProperty):
+	def __init__(self, label, name, value):
+		wxpg.StringProperty.__init__(self, label, name, value)
+
+	def DoGetEditorClass(self):
+		return wxpg.PropertyGridInterface.GetEditorByName("TextCtrlAndButton")
+
+	def GetEditorDialog(self):
+		return ColorDialogAdapter(self)
 
 class CfgMain(wx.Frame):
 	def __init__(self):
 		wx.Frame.__init__(self, None, wx.ID_ANY, "Slicer x Configuration x Manager", size=(500, 500))
 		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
+		
+		with open("attributes.json", "r") as fp:
+			self.attrMap = json.load(fp)
 		self.settings = Settings() 
-		self.cfg = CfgSlicer(self.settings.root, self.settings.dirs)
+		self.cats = list(self.attrMap.keys())
+		
+		self.cfg = CfgSlicer(self.settings.root, self.cats)
 		
 		self.nchecked = 0
 		self.propertiesChanged = False
@@ -65,9 +138,9 @@ class CfgMain(wx.Frame):
 		st = wx.StaticText(self, wx.ID_ANY, "Category:")
 		hsz.Add(st, 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		self.chCategory = wx.Choice(self, wx.ID_ANY, choices = self.settings.dirs)
+		self.chCategory = wx.Choice(self, wx.ID_ANY, choices = self.cats)
 		self.chCategory.SetSelection(0)
-		self.currentCategory = self.settings.dirs[0]
+		self.currentCategory = self.cats[0]
 		self.Bind(wx.EVT_CHOICE, self.onCategory, self.chCategory)
 		hsz.Add(self.chCategory)
 		hsz.AddSpacer(20)
@@ -178,13 +251,16 @@ class CfgMain(wx.Frame):
 	def onCategory(self, _):
 		cx = self.chCategory.GetCurrentSelection()
 		if cx != wx.NOT_FOUND:
-			self.currentCategory = self.settings.dirs[cx]
+			self.currentCategory = self.cats[cx]
 			self.loadCategory(self.currentCategory)
 
 	def loadCategory(self, cat):
 		self.fl = self.cfg.getFileList(cat)
+		#self.fl = [os.path.splitext(x)[0] for x in fl]
 		self.lbFiles.Set(self.fl)
 		self.nchecked = 0
+		self.allowDelete(False)
+		self.allowCopy(False)
 		self.loadProperties(self.getCheckedList())
 
 	def onFile(self, evt):
@@ -293,6 +369,9 @@ class CfgMain(wx.Frame):
 		idx = fl.index(path)
 
 		self.lbFiles.SetSelection(idx)
+		self.selected = idx
+		self.allowDelete()
+		self.allowCopy()
 		self.loadProperties([idx])
 		
 	def onBDel(self, _):
@@ -325,9 +404,8 @@ class CfgMain(wx.Frame):
 			self.selected = idx
 			self.lbFiles.SetSelection(idx)
 			self.loadProperties([idx])
-			if len(fl) == 1:
-				self.allowDelete(False)
-		
+			self.allowCopy(True)
+			self.allowDelete(len(fl) != 1)
 		
 	def getCheckedList(self):
 		cl = []
@@ -339,9 +417,10 @@ class CfgMain(wx.Frame):
 	
 	def loadProperties(self, idxl):
 		self.pg.Clear()
-		
 		cat = self.currentCategory
 		self.acl = {}
+
+		
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
@@ -351,16 +430,41 @@ class CfgMain(wx.Frame):
 					self.acl[label] = []
 					
 				if value not in self.acl[label]:
-					self.acl[label].append(value)			
-				
-		for label in sorted(self.acl.keys()):
-			al = self.acl[label]
-			if len(al) > 1:
-				al = ["<keep>"] + al
-				self.pg.Append(SingleChoiceProperty(label, al[0], al, "message", "caption"))
-			else:
-				self.pg.Append(wxpg.StringProperty(label,value=al[0]) )
-				
+					self.acl[label].append(value)
+					
+		if len(self.acl) == 0:
+			return
+					
+		clist = self.attrMap[cat]["categories"]
+		for c in clist:
+			self.pg.Append( wxpg.PropertyCategory(c+":") )	
+			for attr in self.attrMap[cat][c]:
+				name = attr["name"]
+				try:
+					label = attr["label"]
+				except:
+					label = name
+					
+				try:
+					atype = attr["type"]
+				except KeyError:
+					atype = STRINGTYPE
+									
+				try:
+					al = self.acl[name]
+				except KeyError:
+					print("Attribute (%s) missing" % name)
+					al = [""]
+					
+				if len(al) > 1:
+					al = ["<keep>"] + al
+					self.pg.Append(SingleChoiceProperty(label, name, al[0], al, "%s (%s)" % (label, name), "Choose value to use"))
+				else:
+					if atype == COLORTYPE:
+						self.pg.Append(ColorProperty(label, name, value=al[0]) )
+					else:
+						self.pg.Append(wxpg.StringProperty(label, name, value=al[0]) )
+		
 	def onPropertyChange(self, evt):
 		self.enablePendingChanges(True)
 		
@@ -395,11 +499,20 @@ class CfgMain(wx.Frame):
 			
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
-			al = self.cfg.getAttributes(cat, fn)
-
-			for label in al:
-				if pgl[label] != "<keep>" and pgl[label] != al[label]:
-					self.cfg.setAttribute(cat, fn, label, pgl[label])
+			
+			clist = self.attrMap[cat]["categories"]
+			for c in clist:
+				
+				
+				for attr in self.attrMap[cat][c]:
+					name = attr["name"]
+					try:
+						ov = self.cfg.getAttribute(cat, fn, name)
+					except:
+						ov = None
+						
+					if ov is None or (pgl[name] != "<keep>" and pgl[name] != ov):
+						self.cfg.setAttribute(cat, fn, name, pgl[name])
 	
 		self.cfg.writeModified()				
 		self.enablePendingChanges(False)
@@ -432,6 +545,7 @@ class CfgMain(wx.Frame):
 		dlg.Destroy()
 
 		return rc == wx.ID_YES
+
 
 if __name__ == '__main__':
 	app = wx.App()
