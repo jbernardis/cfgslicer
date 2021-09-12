@@ -5,106 +5,9 @@ import wx.propgrid as wxpg
 from settings import Settings
 from cfgslicer import CfgSlicer
 from inifile import IniFileDlg
-from cfgexceptions import CfgInvalidColor
-
-STRINGTYPE = "string"
-COLORTYPE = "color"
-
-def parseColorValue(pv):
-	if pv is None:
-		raise CfgInvalidColor
-	
-	if len(pv) != 7:
-		raise CfgInvalidColor
-	
-	if pv[0] != '#':
-		raise CfgInvalidColor
-	
-	try:
-		int(pv[1:], 16)
-	except ValueError:
-		raise CfgInvalidColor	
-	
-	r = int(pv[1:3], 16)
-	g = int(pv[3:5], 16)
-	b = int(pv[5:7], 16)
-	
-	return r, g, b
-
-class SingleChoiceDialogAdapter(wxpg.PGEditorDialogAdapter):
-	def __init__(self, choices, message, caption):
-		wxpg.PGEditorDialogAdapter.__init__(self)
-		self.choices = choices
-		self.message = message
-		self.caption = caption
-
-	def DoShowDialog(self, propGrid, _):
-		s = wx.GetSingleChoice(self.message, self.caption, self.choices)
-		
-		if s:
-			self.SetValue(s)
-			return True
-		
-		return False;
-	
-class SingleChoiceProperty(wxpg.StringProperty):
-	def __init__(self, label, name, value, choices, message, caption):
-		wxpg.StringProperty.__init__(self, label, name, value)
-		
-		self.dialog_choices = [x for x in choices]
-		self.message = message
-		self.caption = caption
-
-	def DoGetEditorClass(self):
-		return wxpg.PropertyGridInterface.GetEditorByName("TextCtrlAndButton")
-
-	def GetEditorDialog(self):
-		return SingleChoiceDialogAdapter(self.dialog_choices, self.message, self.caption)
-	
-class ColorDialogAdapter(wxpg.PGEditorDialogAdapter):
-	def __init__(self, prop):
-		wxpg.PGEditorDialogAdapter.__init__(self)
-		self.prop = prop
-
-	def DoShowDialog(self, propGrid, _):
-		cval = self.prop.GetValue()
-		try:
-			r, g, b = parseColorValue(cval)
-		except CfgInvalidColor:
-			r = 0
-			g = 0
-			b = 0
-			
-		dlg = wx.ColourDialog(None)
-		dlg.GetColourData().SetChooseFull(True)
-		dlg.GetColourData().SetColour(wx.Colour(r, g, b, wx.ALPHA_OPAQUE))
-
-		rc = dlg.ShowModal()
-		if rc == wx.ID_OK:
-			data = dlg.GetColourData()
-			color = data.GetColour()
-			r = color.Red()
-			g = color.Green()
-			b = color.Blue()
-
-		dlg.Destroy()
-		
-		if rc != wx.ID_OK:
-			return False
-		
-		cval = "#%02X%02X%02X" % (r, g, b)
-		self.SetValue(cval)
-		return True
-
-class ColorProperty(wxpg.StringProperty):
-	def __init__(self, label, name, value):
-		wxpg.StringProperty.__init__(self, label, name, value)
-
-	def DoGetEditorClass(self):
-		return wxpg.PropertyGridInterface.GetEditorByName("TextCtrlAndButton")
-
-	def GetEditorDialog(self):
-		return ColorDialogAdapter(self)
+from singlechoiceproperty import  SingleChoiceProperty
+from colorproperty import ColorProperty
+from attributemap import AttributeMap, STRINGTYPE, COLORTYPE, INFILLTYPE, TOPINFILLTYPE, BOTTOMINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN
 
 class CfgMain(wx.Frame):
 	def __init__(self):
@@ -112,10 +15,9 @@ class CfgMain(wx.Frame):
 		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
-		with open("attributes.json", "r") as fp:
-			self.attrMap = json.load(fp)
+		self.attrMap = AttributeMap("attributes.json")
 		self.settings = Settings() 
-		self.cats = list(self.attrMap.keys())
+		self.cats = self.attrMap.getCategories()
 		
 		self.cfg = CfgSlicer(self.settings.root, self.cats)
 		
@@ -435,36 +337,44 @@ class CfgMain(wx.Frame):
 		if len(self.acl) == 0:
 			return
 					
-		clist = self.attrMap[cat]["categories"]
+		clist = self.attrMap.getGroups(cat)
 		for c in clist:
 			self.pg.Append( wxpg.PropertyCategory(c+":") )	
-			for attr in self.attrMap[cat][c]:
+			grpAttrs = self.attrMap.getGroupAttrs(cat, c)
+			for attr in grpAttrs:
 				name = attr["name"]
-				try:
-					label = attr["label"]
-				except:
-					label = name
-					
-				try:
-					atype = attr["type"]
-				except KeyError:
-					atype = STRINGTYPE
+				label = attr["label"]
+				atype = attr["type"]
 									
 				try:
 					al = self.acl[name]
 				except KeyError:
 					print("Attribute (%s) missing" % name)
 					al = [""]
-					
-				if len(al) > 1:
-					al = ["<keep>"] + al
-					self.pg.Append(SingleChoiceProperty(label, name, al[0], al, "%s (%s)" % (label, name), "Choose value to use"))
-				else:
-					if atype == COLORTYPE:
-						self.pg.Append(ColorProperty(label, name, value=al[0]) )
+
+				if atype != HIDDEN:					
+					if len(al) > 1:
+						al = ["<keep>"] + al
+						al = [[x, x] for x in al]
+						self.pg.Append(SingleChoiceProperty(label, name, al[0][1], al, "%s (%s)" % (label, name), "Choose value to use"))
 					else:
-						self.pg.Append(wxpg.StringProperty(label, name, value=al[0]) )
-		
+						if atype == COLORTYPE:
+							p = ColorProperty(label, name, value=al[0])
+							self.pg.Append(p)
+							self.pg.LimitPropertyEditing(p, True)
+							
+						elif atype in [ INFILLTYPE, TOPINFILLTYPE, BOTTOMINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
+							l = self.attrMap.getChoices(atype)
+							p = SingleChoiceProperty(label, name, al[0], l, "%s (%s)" % (label, name), "Choose value to use")
+							self.pg.Append(p)
+							self.pg.LimitPropertyEditing(p, True)
+							
+						elif atype == STRINGTYPE:
+							self.pg.Append(wxpg.StringProperty(label, name, value=al[0]) )
+							
+						else:
+							print("invalid type: %s" % atype)
+
 	def onPropertyChange(self, evt):
 		self.enablePendingChanges(True)
 		
@@ -499,20 +409,22 @@ class CfgMain(wx.Frame):
 			
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
-			
-			clist = self.attrMap[cat]["categories"]
+
+			clist = self.attrMap.getGroups(cat)
 			for c in clist:
-				
-				
-				for attr in self.attrMap[cat][c]:
+				grpAttrs = self.attrMap.getGroupAttrs(cat, c)
+				for attr in grpAttrs:
 					name = attr["name"]
-					try:
-						ov = self.cfg.getAttribute(cat, fn, name)
-					except:
-						ov = None
-						
-					if ov is None or (pgl[name] != "<keep>" and pgl[name] != ov):
-						self.cfg.setAttribute(cat, fn, name, pgl[name])
+					if attr["type"] != HIDDEN:
+						try:
+							ov = self.cfg.getAttribute(cat, fn, name)
+						except:
+							ov = None
+							
+						if ov is None or (pgl[name] != "<keep>" and pgl[name] != ov):
+							self.cfg.setAttribute(cat, fn, name, pgl[name])
+					else:
+						print("hidden attribute: %s" % name)
 	
 		self.cfg.writeModified()				
 		self.enablePendingChanges(False)

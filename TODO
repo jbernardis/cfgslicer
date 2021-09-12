@@ -1,5 +1,7 @@
-have attribute types - color, perextruder, choice (patterns, etc)
+have attribute types - perextruder, boolean, multiline text (custom g code, notes, etc)
        
-add tools like color picker, pattern picker, etc -
-
 handle multiple extruders (low priority)
+
+audit - compare json to ini files from a new version to detect new or deleted attributes.
+
+bundle/unbundle

@@ -1,4 +1,6 @@
 {
+	"categories": [ "filament", "print", "printer", "physical_printer" ],
+	
 	"filament": 
 	{
 		"categories" : [ "Filament", "Cooling", "Advanced", "Overrides", "Custom G-code", "Notes", "Dependencies" ],
@@ -45,8 +47,8 @@
 			{ "name": "filament_cooling_initial_speed", "label": "cooling initial speed" },
 			{ "name": "filament_cooling_final_speed", "label": "cooling final speed" },
 			{ "name": "filament_ramming_parameters", "label": "ramming parameters" },
-			{ "name": "filament_settings_id", "label": "settings id" },
-			{ "name": "inherits", "label": "inherits" }
+			{ "name": "filament_settings_id", "label": "settings id", "type": "hidden" },
+			{ "name": "inherits", "label": "inherits", "type": "hidden" }
 		],
 
 		"Overrides" : [
@@ -58,7 +60,7 @@
 			{ "name": "filament_deretract_speed", "label": "deretract speed" },
 			{ "name": "filament_retract_restart_extra", "label": "retract restart extra" },
 			{ "name": "filament_retract_before_travel", "label": "retract before travel" },
-			{ "name": "filament_retract_layer_change", "label": "retract leyer change" },
+			{ "name": "filament_retract_layer_change", "label": "retract layer change" },
 			{ "name": "filament_retract_before_wipe", "label": "retract before wipe" },
 			{ "name": "filament_wipe", "label": "wipe" }
 		],
@@ -99,19 +101,19 @@
 			{ "name": "avoid_crossing_perimeters_max_detour", "label": "max detour" },
 			{ "name": "thin_walls", "label": "thin walls" },
 			{ "name": "overhangs",  "label": "overhangs" },
-			{ "name": "seam_position", "label": "seam position" },
+			{ "name": "seam_position", "label": "seam position", "type": "seamposition" },
 			{ "name": "external_perimeters_first", "label": "external perimeters first" }
 		],
 
 		"Infill" : [
 			{ "name": "fill_density", "label": "density" },
-			{ "name": "fill_pattern", "label": "pattern" },
+			{ "name": "fill_pattern", "label": "pattern", "type": "infill" },
 			{ "name": "infill_anchor", "label": "infill anchor" },
 			{ "name": "infill_anchor_max", "label": "infill anchor maximum" },
-			{ "name": "top_fill_pattern", "label": "top fill pattern" },
-			{ "name": "bottom_fill_pattern", "label": "bottom fill pattern" },
+			{ "name": "top_fill_pattern", "label": "top fill pattern", "type": "topinfill" },
+			{ "name": "bottom_fill_pattern", "label": "bottom fill pattern", "type": "bottominfill" },
 			{ "name": "ironing", "label": "ironing" },
-			{ "name": "ironing_type", "label": "ironing type" },
+			{ "name": "ironing_type", "label": "ironing type", "type": "ironing" },
 			{ "name": "ironing_flowrate", "label": "ironing flowrate" },
 			{ "name": "ironing_spacing", "label": "ironing spacing" },
 			{ "name": "infill_every_layers", "label": "infill every layers" },
@@ -140,7 +142,7 @@
 			{ "name": "support_material_enforce_layers", "label": "enforce layers" },
 			{ "name": "raft_layers", "label": "raft layers" },
 			{ "name": "support_material_contact_distance", "label": "contact distance" },
-			{ "name": "support_material_pattern", "label": "pattern" },
+			{ "name": "support_material_pattern", "label": "pattern", "type": "supportinfill" },
 			{ "name": "support_material_with_sheath", "label": "with sheath" },
 			{ "name": "support_material_spacing", "label": "spacing" },
 			{ "name": "support_material_angle", "label": "angle" },
@@ -213,7 +215,7 @@
 			{ "name": "clip_multipart_objects", "label": "clip multipart objects" },
 			{ "name": "print_settings_id", "label": "settings id" },
 			{ "name": "threads", "label": "threads" },
-			{ "name": "inherits", "label": "inherits" }
+			{ "name": "inherits", "label": "inherits", "type": "hidden" }
 		],
 
 		"Output options": [
@@ -288,7 +290,7 @@
 		],
 
 		"Machine limits" : [
-			{ "name": "machine_limits_usage",  "label": "emit to G-code" },
+			{ "name": "machine_limits_usage",  "label": "usage", "type": "limitsusage" },
 			{ "name": "machine_max_feedrate_x", "label": "maximum feedrate X" },
 			{ "name": "machine_max_feedrate_y", "label": "maximum feedrate Y" },
 			{ "name": "machine_max_feedrate_z", "label": "maximum feedrate Z" },
@@ -331,6 +333,67 @@
 		"Notes" : [
 			{ "name": "printer_notes", "label": "notes" }
 		]
+	},
+	
+	"choicetypes": {
+		"infill": [ 
+			[ "Rectilinear", "rectilinear" ],
+			[ "Aligned Rectilinear", "alignedrectilinear" ],
+			[ "Grid", "grid" ],
+			[ "Triangles", "triangles" ],
+			[ "Stars", "stars" ],
+			[ "Cubic", "cubic" ],
+			[ "Line", "line" ],
+			[ "Concentric", "concentric" ],
+			[ "Honeycomb", "honeycomb" ],
+			[ "3D Honeycomb", "3dhoneycomb" ],
+			[ "Gyroid", "gyroid" ],
+			[ "Hilbert Curve", "hilbertcurve" ],
+			[ "Archimedean Chords", "archimedeanchords" ],
+			[ "Octagram Spiral", "octogramspiral" ],
+			[ "Adaptive Cubic", "adaptivecubic" ],
+			[ "Support Cubic", "supportcubic" ]
+		],
+		"topinfill": [
+			[ "Rectilinear", "rectilinear" ],
+			[ "Aligned Rectininear", "alignedrectilinear" ],
+			[ "Concentric", "concentric" ],
+			[ "Hilbert Curve", "hilbertcurve" ],
+			[ "Archimedean Chords", "archimedeanchords" ],
+			[ "Octogram Spiral", "octogramspiral" ],
+			[ "Monotonic", "monotonic" ]
+		],
+		"bottominfill": [ 
+			[ "Rectilinear", "rectilinear" ],
+			[ "Aligned Rectininear", "alignedrectilinear" ],
+			[ "Concentric", "concentric" ],
+			[ "Hilbert Curve", "hilbertcurve" ],
+			[ "Archimedean Chords", "archimedeanchords" ],
+			[ "Octogram Spiral", "octogramspiral" ],
+			[ "Monotonic", "monotonic" ]
+		],
+		"supportinfill": [ 
+			[ "Rectilinear", "rectilinear" ],
+			[ "Rectilinear grid", "rectilinear-grid" ],
+			[ "Honeycomb", "honeycomb" ]
+		],
+		"ironing": [ 
+			[ "All Top Surfaces", "top" ],
+			[ "Topmost Surface", "topmost" ],
+			[ "All solid surfaces", "solid" ]
+		],
+		"seamposition": [ 
+			[ "Nearest", "nearest" ],
+			[ "Random", "random" ],
+			[ "Aligned", "aligned" ],
+			[ "Rear", "rear" ]
+		],
+		"limitsusage": [ 
+			[ "Emit to G-code", "emit_to_gcode" ],
+			[ "Use for time estimate", "time_estimate_only" ],
+			[ "Ignore", "ignore" ]
+		]
 	}
+		
 }
 
