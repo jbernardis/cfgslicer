@@ -18,8 +18,8 @@
 	   	],
 		
 		"Cooling" : [
-			{ "name": "fan_always_on", "label": "fam always on" },
-			{ "name": "cooling" },
+			{ "name": "fan_always_on", "label": "fan always on", "type": "boolean" },
+			{ "name": "cooling", "type": "boolean" },
 			{ "name": "min_fan_speed", "label": "mimimum fan speed" },
 			{ "name": "max_fan_speed", "label": "maximum fan speed" },
 			{ "name": "bridge_fan_speed", "label": "bridge fan speed" },
@@ -32,7 +32,7 @@
 
 		"Advanced" : [
 			{ "name": "filament_type", "label": "filament type" },
-			{ "name": "filament_soluble", "label": "soluble" },
+			{ "name": "filament_soluble", "label": "soluble", "type": "boolean" },
 			{ "name": "filament_vendor", "label": "vendor" },
 			{ "name": "filament_max_volumetric_speed", "label": "maximum volumetric speed" },
 			{ "name": "filament_minimal_purge_on_wipe_tower", "label": "minimal purge on wipe tower" },
@@ -60,18 +60,18 @@
 			{ "name": "filament_deretract_speed", "label": "deretract speed" },
 			{ "name": "filament_retract_restart_extra", "label": "retract restart extra" },
 			{ "name": "filament_retract_before_travel", "label": "retract before travel" },
-			{ "name": "filament_retract_layer_change", "label": "retract layer change" },
+			{ "name": "filament_retract_layer_change", "label": "retract layer change", "type": "boolean" },
 			{ "name": "filament_retract_before_wipe", "label": "retract before wipe" },
-			{ "name": "filament_wipe", "label": "wipe" }
+			{ "name": "filament_wipe", "label": "wipe", "type": "boolean" }
 		],
 
 		"Custom G-code" : [
-			{ "name": "start_filament_gcode", "label": "start" },
-			{ "name": "end_filament_gcode", "label": "end" }
+			{ "name": "start_filament_gcode", "label": "start", "type": "longstring" },
+			{ "name": "end_filament_gcode", "label": "end", "type": "longstring" }
 		],
 
 		"Notes" : [ 
-			{ "name": "filament_notes", "label": "notes" }
+			{ "name": "filament_notes", "label": "notes", "type": "longstring" }
 	   	],
 
 		"Dependencies" : [
@@ -90,19 +90,19 @@
 			{ "name": "layer_height", "label": "layer height" },
 			{ "name": "first_layer_height", "label": "layer height first layer" },
 			{ "name": "perimeters", "label": "perimeters" },
-			{ "name": "spiral_vase", "label": "spiral vase" },
+			{ "name": "spiral_vase", "label": "spiral vase", "type": "boolean" },
 			{ "name": "top_solid_layers", "label": "top colid layers" },
 			{ "name": "bottom_solid_layers", "label": "bottom solod layers" },
 			{ "name": "top_solid_min_thickness", "label": "top solid minimum thickness" },
 			{ "name": "bottom_solid_min_thickness", "label": "bottom solid minimum thickness" },
-			{ "name": "extra_perimeters", "label": "extra perimeters" },
-			{ "name": "ensure_vertical_shell_thickness", "label": "ensure vertical shell thickness" },
-			{ "name": "avoid_crossing_perimeters", "label": "avoid crossing perimeters" },
+			{ "name": "extra_perimeters", "label": "extra perimeters", "type": "boolean" },
+			{ "name": "ensure_vertical_shell_thickness", "label": "ensure vertical shell thickness", "type": "boolean" },
+			{ "name": "avoid_crossing_perimeters", "label": "avoid crossing perimeters", "type": "boolean" },
 			{ "name": "avoid_crossing_perimeters_max_detour", "label": "max detour" },
-			{ "name": "thin_walls", "label": "thin walls" },
-			{ "name": "overhangs",  "label": "overhangs" },
+			{ "name": "thin_walls", "label": "thin walls", "type": "boolean" },
+			{ "name": "overhangs",  "label": "detect bridge perimeters", "type": "boolean" },
 			{ "name": "seam_position", "label": "seam position", "type": "seamposition" },
-			{ "name": "external_perimeters_first", "label": "external perimeters first" }
+			{ "name": "external_perimeters_first", "label": "external perimeters first", "type": "boolean" }
 		],
 
 		"Infill" : [
@@ -110,49 +110,49 @@
 			{ "name": "fill_pattern", "label": "pattern", "type": "infill" },
 			{ "name": "infill_anchor", "label": "infill anchor" },
 			{ "name": "infill_anchor_max", "label": "infill anchor maximum" },
-			{ "name": "top_fill_pattern", "label": "top fill pattern", "type": "topinfill" },
-			{ "name": "bottom_fill_pattern", "label": "bottom fill pattern", "type": "bottominfill" },
-			{ "name": "ironing", "label": "ironing" },
+			{ "name": "top_fill_pattern", "label": "top fill pattern", "type": "shellinfill" },
+			{ "name": "bottom_fill_pattern", "label": "bottom fill pattern", "type": "shellinfill" },
+			{ "name": "ironing", "label": "ironing", "type": "boolean" },
 			{ "name": "ironing_type", "label": "ironing type", "type": "ironing" },
 			{ "name": "ironing_flowrate", "label": "ironing flowrate" },
 			{ "name": "ironing_spacing", "label": "ironing spacing" },
 			{ "name": "infill_every_layers", "label": "infill every layers" },
-			{ "name": "infill_only_where_needed", "label": "infill only where needed" },
+			{ "name": "infill_only_where_needed", "label": "infill only where needed", "type": "boolean" },
 			{ "name": "solid_infill_every_layers", "label": "solid infill every layers" },
 			{ "name": "fill_angle", "label": "fill angle" },
 			{ "name": "solid_infill_below_area", "label": "solid infill below area" },
 			{ "name": "bridge_angle", "label": "bridge angle" },
-			{ "name": "only_retract_when_crossing_perimeters", "label": "only retract when crossing perimeters" },
-			{ "name": "infill_first", "label": "infill first" }
+			{ "name": "only_retract_when_crossing_perimeters", "label": "only retract when crossing perimeters", "type": "boolean" },
+			{ "name": "infill_first", "label": "infill first", "type": "boolean" }
 		],
 
 		"Skirt and Brim" : [
 			{ "name": "skirts", "label": "skirt" },
 			{ "name": "skirt_distance", "label": "distance" },
 			{ "name": "skirt_height", "label": "height" },
-			{ "name": "draft_shield", "label": "draft shield" },
+			{ "name": "draft_shield", "label": "draft shield", "type": "boolean" },
 			{ "name": "min_skirt_length", "label": "minimum length" },
 			{ "name": "brim_width", "label": "brim width" }
 		],
 
 		"Support": [
-			{ "name": "support_material", "label": "material" },
-			{ "name": "support_material_auto", "label": "automatic" },
+			{ "name": "support_material", "label": "material", "type": "boolean" },
+			{ "name": "support_material_auto", "label": "automatic", "type": "boolean" },
 			{ "name": "support_material_threshold", "label": "threshold" },
 			{ "name": "support_material_enforce_layers", "label": "enforce layers" },
 			{ "name": "raft_layers", "label": "raft layers" },
 			{ "name": "support_material_contact_distance", "label": "contact distance" },
 			{ "name": "support_material_pattern", "label": "pattern", "type": "supportinfill" },
-			{ "name": "support_material_with_sheath", "label": "with sheath" },
+			{ "name": "support_material_with_sheath", "label": "with sheath", "type": "boolean" },
 			{ "name": "support_material_spacing", "label": "spacing" },
 			{ "name": "support_material_angle", "label": "angle" },
 			{ "name": "support_material_interface_layers", "label": "interface layers" },
 			{ "name": "support_material_interface_spacing", "label": "interface spacing" },
-			{ "name": "support_material_interface_contact_loops", "label": "interface contact loops" },
-			{ "name": "support_material_buildplate_only", "label": "buildplate only" },
+			{ "name": "support_material_interface_contact_loops", "label": "interface contact loops", "type": "boolean" },
+			{ "name": "support_material_buildplate_only", "label": "buildplate only", "type": "boolean" },
 			{ "name": "support_material_xy_spacing", "label": "XY spacing" },
-			{ "name": "dont_support_bridges", "label": "don't support bridges" },
-			{ "name": "support_material_synchronize_layers", "label": "synchronize layers" }
+			{ "name": "dont_support_bridges", "label": "don't support bridges", "type": "boolean" },
+			{ "name": "support_material_synchronize_layers", "label": "synchronize layers", "type": "boolean" }
 		],
 
 		"Speed" : [
@@ -184,17 +184,17 @@
 			{ "name": "solid_infill_extruder", "label": "solid infill" },
 			{ "name": "support_material_extruder", "label": "support material" },
 			{ "name": "support_material_interface_extruder", "label": "support material interface" },
-			{ "name": "ooze_prevention", "label": "ooze prevention" },
+			{ "name": "ooze_prevention", "label": "ooze prevention", "type": "boolean" },
 			{ "name": "standby_temperature_delta", "label": "standby temperature delta" },
-			{ "name": "wipe_tower", "label": "wipe tower" },
+			{ "name": "wipe_tower", "label": "wipe tower", "type": "boolean" },
 			{ "name": "wipe_tower_x", "label": "wipe tower X" },
 			{ "name": "wipe_tower_y", "label": "wipe tower Y" },
 			{ "name": "wipe_tower_width", "label": "wipe tower width" },
 			{ "name": "wipe_tower_rotation_angle", "label": "wipe tower angle" },
 			{ "name": "wipe_tower_bridging", "label": "wipe tower bridging" },
-			{ "name": "wipe_tower_no_sparse_layers", "label": "wipe tower no sparse layers" },
-			{ "name": "single_extruder_multi_material_priming", "label": "single extruder multi material priming" },
-			{ "name": "interface_shells", "label": "interface shells" }
+			{ "name": "wipe_tower_no_sparse_layers", "label": "wipe tower no sparse layers", "type": "boolean" },
+			{ "name": "single_extruder_multi_material_priming", "label": "single extruder multi material priming", "type": "boolean" },
+			{ "name": "interface_shells", "label": "interface shells", "type": "boolean" }
 		],
 
 		"Advanced": [
@@ -212,24 +212,24 @@
 			{ "name": "resolution" },
 			{ "name": "xy_size_compensation", "label": "XY size compensation" },
 			{ "name": "elefant_foot_compensation", "label": "elephant foot compensation" },
-			{ "name": "clip_multipart_objects", "label": "clip multipart objects" },
-			{ "name": "print_settings_id", "label": "settings id" },
-			{ "name": "threads", "label": "threads" },
+			{ "name": "clip_multipart_objects", "label": "clip multipart objects", "type": "boolean" },
+			{ "name": "print_settings_id", "label": "settings id", "type": "hidden" },
+			{ "name": "threads", "label": "threads", "type": "hidden" },
 			{ "name": "inherits", "label": "inherits", "type": "hidden" }
 		],
 
 		"Output options": [
-			{ "name": "complete_objects", "label": "complete objects" },
+			{ "name": "complete_objects", "label": "complete objects", "type": "boolean" },
 			{ "name": "extruder_clearance_radius", "label": "extruder clearance radius" },
 			{ "name": "extruder_clearance_height", "label": "exteuder clearance height" },
-			{ "name": "gcode_comments", "label": "G-code comments" },
-			{ "name": "gcode_label_objects", "label": "G-code label objects" },
+			{ "name": "gcode_comments", "label": "G-code comments", "type": "boolean" },
+			{ "name": "gcode_label_objects", "label": "G-code label objects", "type": "boolean" },
 			{ "name": "output_filename_format", "label": "output file format" },
 			{ "name": "post_process", "label": "post process" }
 		],
 
 		"Notes" : [
-			{ "name": "notes", "label": "notes" }
+			{ "name": "notes", "label": "notes", "type": "longstring" }
 		],
 
 		"Dependencies" : [
@@ -269,24 +269,24 @@
 			{ "name": "single_extruder_multi_material", "label": "single extruder multi material" },
 			{ "name": "gcode_flavor",  "label": "G-code flavor" },
 			{ "name": "thumbnails", "label": "thumbnails" },
-			{ "name": "silent_mode", "label": "silent mode" },
-			{ "name": "remaining_times", "label": "remaining times" },
-			{ "name": "use_relative_e_distances", "label": "use relative e" },
-			{ "name": "use_firmware_retraction", "label": "use firmeare retraction" },
-			{ "name": "use_volumetric_e", "label": "use volumetric e" },
-			{ "name": "variable_layer_height", "label": "variable layer height" }
+			{ "name": "silent_mode", "label": "silent mode", "type": "boolean" },
+			{ "name": "remaining_times", "label": "remaining times", "type": "boolean" },
+			{ "name": "use_relative_e_distances", "label": "use relative e", "type": "boolean" },
+			{ "name": "use_firmware_retraction", "label": "use firmeare retraction", "type": "boolean" },
+			{ "name": "use_volumetric_e", "label": "use volumetric e", "type": "boolean" },
+			{ "name": "variable_layer_height", "label": "variable layer height", "type": "boolean" }
 		],
 
 		"Custom G-Code" : [
-			{ "name": "start_gcode", "label": "start" },
-			{ "name": "end_gcode", "label": "end" },
-			{ "name": "before_layer_gcode", "label": "before layer" },
-			{ "name": "layer_gcode", "label": "layer" },
-			{ "name": "toolchange_gcode", "label": "tool change" },
-			{ "name": "between_objects_gcode",  "label": "between objects" },
-			{ "name": "color_change_gcode", "label": "color change" },
-			{ "name": "pause_print_gcode", "label": "pause print" },
-			{ "name": "template_custom_gcode", "label": "template" }
+			{ "name": "start_gcode", "label": "start", "type": "longstring" },
+			{ "name": "end_gcode", "label": "end", "type": "longstring" },
+			{ "name": "before_layer_gcode", "label": "before layer", "type": "longstring" },
+			{ "name": "layer_gcode", "label": "layer", "type": "longstring" },
+			{ "name": "toolchange_gcode", "label": "tool change", "type": "longstring" },
+			{ "name": "between_objects_gcode",  "label": "between objects", "type": "longstring" },
+			{ "name": "color_change_gcode", "label": "color change", "type": "longstring" },
+			{ "name": "pause_print_gcode", "label": "pause print", "type": "longstring" },
+			{ "name": "template_custom_gcode", "label": "template", "type": "longstring" }
 		],
 
 		"Machine limits" : [
@@ -322,8 +322,8 @@
 			{ "name": "deretract_speed", "label": "deretract speed" },
 			{ "name": "retract_restart_extra",  "label": "retract restart extra" },
 			{ "name": "retract_before_travel", "label": "retract before travel" },
-			{ "name": "retract_layer_change", "label": "retract layer change" },
-			{ "name": "wipe", "label": "wipe" },
+			{ "name": "retract_layer_change", "label": "retract layer change", "type": "boolean" },
+			{ "name": "wipe", "label": "wipe", "type": "boolean" },
 			{ "name": "retract_before_wipe", "label": "retract before wipe" },
 			{ "name": "retract_length_toolchange",  "label": "retract length toolchange" },
 			{ "name": "retract_restart_extra_toolchange", "label": "retract restart extra toolchange" },
@@ -331,7 +331,7 @@
 		],
 
 		"Notes" : [
-			{ "name": "printer_notes", "label": "notes" }
+			{ "name": "printer_notes", "label": "notes", "type": "longstring" }
 		]
 	},
 	
@@ -354,16 +354,7 @@
 			[ "Adaptive Cubic", "adaptivecubic" ],
 			[ "Support Cubic", "supportcubic" ]
 		],
-		"topinfill": [
-			[ "Rectilinear", "rectilinear" ],
-			[ "Aligned Rectininear", "alignedrectilinear" ],
-			[ "Concentric", "concentric" ],
-			[ "Hilbert Curve", "hilbertcurve" ],
-			[ "Archimedean Chords", "archimedeanchords" ],
-			[ "Octogram Spiral", "octogramspiral" ],
-			[ "Monotonic", "monotonic" ]
-		],
-		"bottominfill": [ 
+		"shellinfill": [
 			[ "Rectilinear", "rectilinear" ],
 			[ "Aligned Rectininear", "alignedrectilinear" ],
 			[ "Concentric", "concentric" ],

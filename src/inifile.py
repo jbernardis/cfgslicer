@@ -3,7 +3,7 @@ import re
 
 class IniFileDlg(wx.Dialog):
 	def __init__(self, parent, cat, flist):
-		wx.Dialog.__init__(self, parent, wx.ID_ANY, "", style=0)
+		wx.Dialog.__init__(self, parent, wx.ID_ANY, "")
 		self.parent = parent
 		self.category = cat
 		self.flist = [x for x in flist]

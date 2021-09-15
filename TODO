@@ -1,7 +1,5 @@
-have attribute types - perextruder, boolean, multiline text (custom g code, notes, etc)
+have attribute types - perextruder, 2 value fields - like machine limits, etc
        
 handle multiple extruders (low priority)
-
-audit - compare json to ini files from a new version to detect new or deleted attributes.
 
 bundle/unbundle

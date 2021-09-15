@@ -1,16 +1,16 @@
 import json
-import pprint
 
 STRINGTYPE = "string"
+LONGSTRINGTYPE = "longstring"
 COLORTYPE = "color"
 INFILLTYPE = "infill"
-TOPINFILLTYPE = "topinfill"
-BOTTOMINFILLTYPE = "bottominfill"
+SHELLINFILLTYPE = "shellinfill"
 SUPPORTINFILLTYPE = "supportinfill"
 IRONINGTYPE = "ironing"
 SEAMPOSTYPE = "seamposition"
 LIMITSUSAGE = "limitsusage"
 HIDDEN = "hidden"
+BOOLEAN = "boolean"
 
 class AttributeMap:
 	def __init__(self, fn):		
@@ -38,6 +38,20 @@ class AttributeMap:
 	
 	def getGroupAttrs(self, cat, grp):
 		return self.attrMap[cat][grp]
+	
+	def getSingleAttribute(self, cat, name):
+		al = self.getCatAttrs(cat)
+		for a in al:
+			if a["name"] == name:
+				return a
+			
+		return None
+	
+	def getCatAttrs(self, cat):
+		attrList = []	
+		for grp in self.attrMap[cat]["categories"]:
+			attrList.extend(self.attrMap[cat][grp])
+		return attrList
 	
 	def getChoices(self, ctype):
 		return self.attrMap["choicetypes"][ctype]

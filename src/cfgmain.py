@@ -1,13 +1,17 @@
-import json
 import wx
 import wx.propgrid as wxpg
 
 from settings import Settings
 from cfgslicer import CfgSlicer
 from inifile import IniFileDlg
+from auditfile import AuditFileDlg
 from singlechoiceproperty import  SingleChoiceProperty
 from colorproperty import ColorProperty
-from attributemap import AttributeMap, STRINGTYPE, COLORTYPE, INFILLTYPE, TOPINFILLTYPE, BOTTOMINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN
+from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN, BOOLEAN
+
+import pprint
+
+MENU_AUDIT = 101
 
 class CfgMain(wx.Frame):
 	def __init__(self):
@@ -15,12 +19,27 @@ class CfgMain(wx.Frame):
 		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
+		self.CenterOnScreen()
+
+		self.CreateStatusBar()
+		#self.SetStatusText("This is the statusbar")
+		
 		self.attrMap = AttributeMap("attributes.json")
 		self.settings = Settings() 
 		self.cats = self.attrMap.getCategories()
 		
 		self.cfg = CfgSlicer(self.settings.root, self.cats)
 		
+		menuBar = wx.MenuBar()
+
+		# 1st menu from left
+		menuTools = wx.Menu()
+		menuTools.Append(MENU_AUDIT, "Audit", "Compare a file with configured options")
+
+		menuBar.Append(menuTools, "Tools")
+		self.SetMenuBar(menuBar)
+		self.Bind(wx.EVT_MENU, self.onAudit, id=MENU_AUDIT)
+				
 		self.nchecked = 0
 		self.propertiesChanged = False
 		self.selected = None
@@ -112,6 +131,8 @@ class CfgMain(wx.Frame):
 		self.bCancel.Bind(wx.EVT_BUTTON, self.onCancel, self.bCancel)
 		self.bCancel.Enable(False)
 		hsz.Add(self.bCancel)
+		
+		hsz.AddSpacer(20)
 		
 		wvsz.Add(hsz)
 
@@ -327,7 +348,11 @@ class CfgMain(wx.Frame):
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
 			for label in al:
-				value = al[label]
+				a = self.attrMap.getSingleAttribute(cat, label)
+				if a and a["type"] == BOOLEAN:
+					value = 'False' if al[label] == '0' else 'True'
+				else:
+					value = al[label]
 				if label not in self.acl:
 					self.acl[label] = []
 					
@@ -363,7 +388,7 @@ class CfgMain(wx.Frame):
 							self.pg.Append(p)
 							self.pg.LimitPropertyEditing(p, True)
 							
-						elif atype in [ INFILLTYPE, TOPINFILLTYPE, BOTTOMINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
+						elif atype in [ INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
 							l = self.attrMap.getChoices(atype)
 							p = SingleChoiceProperty(label, name, al[0], l, "%s (%s)" % (label, name), "Choose value to use")
 							self.pg.Append(p)
@@ -371,9 +396,19 @@ class CfgMain(wx.Frame):
 							
 						elif atype == STRINGTYPE:
 							self.pg.Append(wxpg.StringProperty(label, name, value=al[0]) )
-							
+						
+						elif atype == LONGSTRINGTYPE:
+							p = wxpg.LongStringProperty(label, name, value=al[0])
+							self.pg.Append(p)
+							self.pg.LimitPropertyEditing(p, True)
+						
+						elif atype == BOOLEAN:
+							p = wxpg.BoolProperty(label, name, value=(al[0] != 'False'))
+							self.pg.Append(p)
+							self.pg.LimitPropertyEditing(p, True)
+														
 						else:
-							print("invalid type: %s" % atype)
+							print("invalid type for field %s: %s" % (name, atype))
 
 	def onPropertyChange(self, evt):
 		self.enablePendingChanges(True)
@@ -417,12 +452,26 @@ class CfgMain(wx.Frame):
 					name = attr["name"]
 					if attr["type"] != HIDDEN:
 						try:
-							ov = self.cfg.getAttribute(cat, fn, name)
+							oldv = self.cfg.getAttribute(cat, fn, name)
 						except:
-							ov = None
-							
-						if ov is None or (pgl[name] != "<keep>" and pgl[name] != ov):
-							self.cfg.setAttribute(cat, fn, name, pgl[name])
+							oldv = None
+						if attr["type"] == BOOLEAN:
+							if pgl[name] == 'True':
+								print("string true for %s" % name)
+								newv = True
+							elif pgl[name] == 'False':
+								print("string false for %s" % name)
+								newv = False
+							else:
+								print("true boolean value for %s" % name)
+								newv = '1' if pgl[name] else '0'
+						else:
+							newv = pgl[name]
+
+						print("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
+						if oldv is None or (newv != "<keep>" and newv != oldv):
+							self.cfg.setAttribute(cat, fn, name, newv)
+							print("updated attributes")
 					else:
 						print("hidden attribute: %s" % name)
 	
@@ -440,6 +489,11 @@ class CfgMain(wx.Frame):
 			idxl = self.getCheckedList()
 			
 		self.loadProperties(idxl)
+		
+	def onAudit(self, _):
+		dlg = AuditFileDlg(self, self.settings.root, self.attrMap, self.cats)
+		dlg.ShowModal()
+		dlg.Destroy()
 				
 	def onClose(self, _):
 		if self.propertiesChanged:
