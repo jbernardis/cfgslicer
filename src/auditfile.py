@@ -6,6 +6,8 @@ class AuditReport(wx.Dialog):
 	def __init__(self, parent, cat, fn, new, missing, common):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Audit Report for file %s/\"%s\"" % (cat, fn))
 		self.parent = parent
+
+		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
 		vsizer = wx.BoxSizer(wx.VERTICAL)
 		vsizer.AddSpacer(20)
@@ -14,51 +16,23 @@ class AuditReport(wx.Dialog):
 		hsz.AddSpacer(20)	
 		
 		
-		self.trReport = wx.TreeCtrl(self, wx.ID_ANY, size=(400, 400), style=wx.TR_HAS_BUTTONS | wx.TR_HIDE_ROOT | wx.TR_ROW_LINES)
+		self.trReport = wx.TreeCtrl(self, wx.ID_ANY, size=(400, 400), style=wx.TR_HAS_BUTTONS | wx.TR_LINES_AT_ROOT | wx.TR_HIDE_ROOT | wx.TR_ROW_LINES)
 		
-		isz = (16,16)
-		il = wx.ImageList(isz[0], isz[1])
-		fldridx	 = il.Add(wx.ArtProvider.GetBitmap(wx.ART_PLUS,	  wx.ART_OTHER, isz))
-		fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_MINUS, wx.ART_OTHER, isz))
-		fldrempty = il.Add(wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_OTHER, isz))
-		self.trReport.SetImageList(il)
-		self.il = il
-
-
 		root = self.trReport.AddRoot("root")
 		
 		cfg = self.trReport.AppendItem(root, "Configured Attributes missing from file")
-		if len(missing) == 0:
-			self.trReport.SetItemImage(cfg, fldrempty, wx.TreeItemIcon_Normal)
-		else:
-			self.trReport.SetItemImage(cfg, fldridx, wx.TreeItemIcon_Normal)
-			self.trReport.SetItemImage(cfg, fldropenidx, wx.TreeItemIcon_Expanded)
 		for i in missing:
 			self.trReport.AppendItem(cfg, i)
 		
 		cfg = self.trReport.AppendItem(root, "file attributes not in Configuration")
-		if len(new) == 0:
-			self.trReport.SetItemImage(cfg, fldrempty, wx.TreeItemIcon_Normal)
-		else:
-			self.trReport.SetItemImage(cfg, fldridx, wx.TreeItemIcon_Normal)
-			self.trReport.SetItemImage(cfg, fldropenidx, wx.TreeItemIcon_Expanded)
 		for i in new:
 			self.trReport.AppendItem(cfg, i)
 		
 		cfg = self.trReport.AppendItem(root, "Attributes common to both")
-		if len(common) == 0:
-			self.trReport.SetItemImage(cfg, fldrempty, wx.TreeItemIcon_Normal)
-		else:
-			self.trReport.SetItemImage(cfg, fldridx, wx.TreeItemIcon_Normal)
-			self.trReport.SetItemImage(cfg, fldropenidx, wx.TreeItemIcon_Expanded)
 		for i in common:
 			self.trReport.AppendItem(cfg, i)
 			
 		#self.trReport.ExpandAll()
-			
-		
-		
-		
 		
 		hsz.Add(self.trReport)
 				
@@ -68,6 +42,9 @@ class AuditReport(wx.Dialog):
 		
 		self.SetSizer(vsizer)
 		self.Fit()
+	
+	def onClose(self, _):
+		self.EndModal(wx.ID_OK)
 
 class AuditFileDlg(wx.Dialog):
 	def __init__(self, parent, root, attrMap, cats):
@@ -76,6 +53,8 @@ class AuditFileDlg(wx.Dialog):
 		self.root = root
 		self.attrMap = attrMap
 		self.cats = cats
+
+		self.Bind(wx.EVT_CLOSE, self.onExit)
 		
 		self.currentCategory = None
 		self.currentFile = None
@@ -129,7 +108,7 @@ class AuditFileDlg(wx.Dialog):
 		
 		self.bExit = wx.Button(self, wx.ID_ANY, "Exit")
 		hsz.Add(self.bExit)
-		self.Bind(wx.EVT_BUTTON, self.onbExit, self.bExit)
+		self.Bind(wx.EVT_BUTTON, self.onExit, self.bExit)
 		
 		hsz.AddSpacer(10)		
 		vsizer.Add(hsz)
@@ -208,8 +187,9 @@ class AuditFileDlg(wx.Dialog):
 				new.append(a)
 						
 		dlg = AuditReport(self, self.currentCategory, os.path.basename(self.currentFile), new, missing, common)
-		dlg.Show()
+		dlg.ShowModal()
+		dlg.Destroy()
 					
 		
-	def onbExit(self, _):
+	def onExit(self, _):
 		self.EndModal(wx.ID_OK)

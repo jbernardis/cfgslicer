@@ -9,9 +9,8 @@ from singlechoiceproperty import  SingleChoiceProperty
 from colorproperty import ColorProperty
 from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN, BOOLEAN
 
-import pprint
-
 MENU_AUDIT = 101
+MENU_RELOAD = 102
 
 class CfgMain(wx.Frame):
 	def __init__(self):
@@ -35,10 +34,12 @@ class CfgMain(wx.Frame):
 		# 1st menu from left
 		menuTools = wx.Menu()
 		menuTools.Append(MENU_AUDIT, "Audit", "Compare a file with configured options")
+		menuTools.Append(MENU_RELOAD, "Reload", "Reload INI files")
 
 		menuBar.Append(menuTools, "Tools")
 		self.SetMenuBar(menuBar)
 		self.Bind(wx.EVT_MENU, self.onAudit, id=MENU_AUDIT)
+		self.Bind(wx.EVT_MENU, self.onReload, id=MENU_RELOAD)
 				
 		self.nchecked = 0
 		self.propertiesChanged = False
@@ -184,18 +185,31 @@ class CfgMain(wx.Frame):
 		self.nchecked = 0
 		self.allowDelete(False)
 		self.allowCopy(False)
-		self.loadProperties(self.getCheckedList())
+		idx = self.lbFiles.GetSelection()
+		idxl = []
+		if idx != wx.NOT_FOUND:
+			idxl  = [ idx ]
+		self.loadProperties(idxl)
 
 	def onFile(self, evt):
 		if self.nchecked == 0:	
-			index = evt.GetSelection()
-			self.loadProperties([index])
-			self.selected = index
-			self.allowCopy()
-			self.allowDelete()
+			idx = evt.GetSelection()
+			if idx != wx.NOT_FOUND:
+				self.loadProperties([idx])
+				self.selected = idx
+				self.allowCopy()
+				self.allowDelete()
+			else:
+				self.loadProperties([])
+				self.selected = None
+				self.allowCopy(False)
+				self.allowDelete(False)
 
 	def onFileCheck(self, evt):
 		index = evt.GetSelection()
+		if index == wx.NOT_FOUND:
+			return
+		
 		self.lbFiles.SetSelection(index)
 		if self.lbFiles.IsChecked(index):
 			self.nchecked += 1
@@ -215,6 +229,9 @@ class CfgMain(wx.Frame):
 			
 	def onFileDClick(self, evt):
 		index = evt.GetSelection()
+		if index == wx.NOT_FOUND:
+			return
+		
 		self.lbFiles.SetSelection(index)
 		if self.lbFiles.IsChecked(index):
 			self.lbFiles.Check(index, False)
@@ -248,17 +265,18 @@ class CfgMain(wx.Frame):
 			self.lbFiles.Check(i, False)
 			
 		self.nchecked = 0
-		self.loadProperties([])
-
 		index = self.lbFiles.GetSelection()
+		
 		if index == wx.NOT_FOUND:
 			self.selected = None
 			self.allowCopy(False)
 			self.allowDelete(False)
+			self.loadProperties([])
 		else:
 			self.selected = index
 			self.allowCopy(True)
 			self.allowDelete(True)
+			self.loadProperties([index])
 			
 	def allowCopy(self, flag=True):
 		if self.propertiesChanged:
@@ -342,7 +360,9 @@ class CfgMain(wx.Frame):
 		self.pg.Clear()
 		cat = self.currentCategory
 		self.acl = {}
-
+		
+		if len(idxl) == 0:
+			return
 		
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
@@ -420,9 +440,15 @@ class CfgMain(wx.Frame):
 		if flag:
 			self.allowCopy(False)
 			self.allowDelete(False)
-		elif self.nchecked == 0:	
-			self.allowCopy(True)
-			self.allowDelete(True)
+			self.SetStatusText("Changes pending")
+		else:
+			if self.nchecked == 0:	
+				self.allowCopy(True)
+				self.allowDelete(True)
+			else:
+				self.allowCopy(False)
+				self.allowDelete(False)
+			self.SetStatusText("")
 			
 		self.lbFiles.Enable(not flag)
 		self.chCategory.Enable(not flag)
@@ -494,6 +520,19 @@ class CfgMain(wx.Frame):
 		dlg = AuditFileDlg(self, self.settings.root, self.attrMap, self.cats)
 		dlg.ShowModal()
 		dlg.Destroy()
+		
+	def onReload(self, _):
+		if self.propertiesChanged:
+			if not self.verifyLoseChanges("reload"):
+				return 
+
+		self.cfg = CfgSlicer(self.settings.root, self.cats)
+		self.selected = None
+		self.lbFiles.SetSelection(wx.NOT_FOUND)
+		self.loadProperties([])
+		self.enablePendingChanges(False)
+		self.allowCopy(False)
+		self.allowDelete(False)
 				
 	def onClose(self, _):
 		if self.propertiesChanged:

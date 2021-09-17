@@ -2,8 +2,11 @@ import os
 import datetime
 from configparser import RawConfigParser
 
-from cfgexceptions import *
-
+from cfgexceptions import CfgUnknownCategory, CfgUnknownFile, CfgDuplicateFile, CfgUnknownAttribute
+		
+class CfgInvalidColor(Exception):
+	def __init__(self):
+		pass
 class CfgFile:
 	def __init__(self, attrdict):
 		self.modified = False
