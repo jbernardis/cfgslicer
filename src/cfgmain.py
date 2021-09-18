@@ -154,7 +154,13 @@ class CfgMain(wx.Frame):
 		whsz.Add(wvsz)
 		
 		whsz.AddSpacer(20)	
-		self.SetSizer(whsz)
+		
+		vsz = wx.BoxSizer(wx.VERTICAL)
+		vsz.AddSpacer(20)
+		vsz.Add(whsz)
+		vsz.AddSpacer(20)
+		
+		self.SetSizer(vsz)
 		
 		self.Layout()
 		self.Fit()
