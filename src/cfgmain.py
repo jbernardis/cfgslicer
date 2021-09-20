@@ -8,9 +8,12 @@ from auditfile import AuditFileDlg
 from singlechoiceproperty import  SingleChoiceProperty
 from colorproperty import ColorProperty
 from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN, BOOLEAN
+from bundle import BundleDlg, UnBundleDlg
 
 MENU_AUDIT = 101
 MENU_RELOAD = 102
+MENU_BUNDLE = 103
+MENU_UNBUNDLE = 104
 
 class CfgMain(wx.Frame):
 	def __init__(self):
@@ -35,11 +38,15 @@ class CfgMain(wx.Frame):
 		menuTools = wx.Menu()
 		menuTools.Append(MENU_AUDIT, "Audit", "Compare a file with configured options")
 		menuTools.Append(MENU_RELOAD, "Reload", "Reload INI files")
+		menuTools.Append(MENU_BUNDLE, "Bundle", "Bundle INI files into a ZIP file")
+		menuTools.Append(MENU_UNBUNDLE, "Unbundle", "Unbundle INI files from a ZIP file")
 
 		menuBar.Append(menuTools, "Tools")
 		self.SetMenuBar(menuBar)
 		self.Bind(wx.EVT_MENU, self.onAudit, id=MENU_AUDIT)
 		self.Bind(wx.EVT_MENU, self.onReload, id=MENU_RELOAD)
+		self.Bind(wx.EVT_MENU, self.onBundle, id=MENU_BUNDLE)
+		self.Bind(wx.EVT_MENU, self.onUnbundle, id=MENU_UNBUNDLE)
 				
 		self.nchecked = 0
 		self.propertiesChanged = False
@@ -539,6 +546,16 @@ class CfgMain(wx.Frame):
 		self.enablePendingChanges(False)
 		self.allowCopy(False)
 		self.allowDelete(False)
+		
+	def onBundle(self, _):
+		dlg = BundleDlg(self, self.settings.root, self.cats)
+		dlg.ShowModal()
+		dlg.Destroy()
+		
+	def onUnbundle(self, _):
+		dlg = UnBundleDlg(self, self.settings.root)
+		dlg.ShowModal()
+		dlg.Destroy()
 				
 	def onClose(self, _):
 		if self.propertiesChanged:
