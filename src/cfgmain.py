@@ -30,7 +30,8 @@ class CfgMain(wx.Frame):
 		self.settings = Settings() 
 		self.cats = self.attrMap.getCategories()
 		
-		self.cfg = CfgSlicer(self.settings.root, self.cats)
+		self.cfg = CfgSlicer(self.settings.root, self.cats, self.attrMap)
+		self.extGroup = self.attrMap.getExtruderGroup()
 		
 		menuBar = wx.MenuBar()
 
@@ -373,19 +374,41 @@ class CfgMain(wx.Frame):
 		self.pg.Clear()
 		cat = self.currentCategory
 		self.acl = {}
+		self.extGroups = []
 		
 		if len(idxl) == 0:
 			return
-		
+
+		nExt = None		
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
+			nx = self.cfg.getExtruderCount(fn)
+			if not nx is None:
+				nExt = nx
+				
 			for label in al:
 				a = self.attrMap.getSingleAttribute(cat, label)
-				if a and a["type"] == BOOLEAN:
-					value = 'False' if al[label] == '0' else 'True'
+				if a:
+					if self.attrMap.isExtruderAttribute(cat, label):
+						print("%s is an extruder attribute" % label)
+						vl = al[label].split(",")
+						print("length: %d vs %d" % (len(vl), nExt))
+						print(str(vl))
+						if len(vl) < nExt:
+							vl.extend([vl[0]] * (nExt-len(vl)))
+						elif len(vl) > nExt:
+							vl = vl[:nExt]
+						print(str(vl))
+						vl = [self.parseAttribute(v, a["type"]) for v in vl]
+						print(str(vl))
+						value = vl
+					else:
+						value = self.parseAttribute(al[label], a["type"])
 				else:
+					# no attribute found!!
 					value = al[label]
+					print("this is an error - no attributes found for (%s:%s)" % (cat, label))
 				if label not in self.acl:
 					self.acl[label] = []
 					
@@ -397,51 +420,88 @@ class CfgMain(wx.Frame):
 					
 		clist = self.attrMap.getGroups(cat)
 		for c in clist:
-			self.pg.Append( wxpg.PropertyCategory(c+":") )	
-			grpAttrs = self.attrMap.getGroupAttrs(cat, c)
-			for attr in grpAttrs:
-				name = attr["name"]
-				label = attr["label"]
-				atype = attr["type"]
-									
-				try:
-					al = self.acl[name]
-				except KeyError:
-					print("Attribute (%s) missing" % name)
-					al = [""]
+			if self.attrMap.isExtruderGroup(cat, c):
+				for ex in range(nExt):
+					self.populateGroup(cat, c, ex+1)
+			else:
+				self.populateGroup(cat, c)
+				
+		print("extruder groups:" )
+		print(str(self.extGroups))
+	
+	def parseAttribute(self, v, t):
+		if t == BOOLEAN:
+			if v in [ '0', "False", "false" ]:
+				return 'False'
+			elif v in [ '1', "True", "true" ]:
+				return 'True'
+			else:
+				print("interpreting unknown value (%s) as True" % v)
+				return 'True'
+		else: # not a boolean
+			return v
 
-				if atype != HIDDEN:					
-					if len(al) > 1:
-						al = ["<keep>"] + al
-						al = [[x, x] for x in al]
-						self.pg.Append(SingleChoiceProperty(label, name, al[0][1], al, "%s (%s)" % (label, name), "Choose value to use"))
+					
+	def populateGroup(self, cat, group, ext=None):
+		if ext is None:
+			lbl = group
+			sfx = ""
+		else:
+			lbl = group % ext
+			self.extGroups.append(lbl)
+			sfx = "%d" % ext
+			
+		print("populate group (%s) (%s) (%s)" % (cat, group, lbl))
+		self.pg.Append( wxpg.PropertyCategory(lbl+":") )	
+		grpAttrs = self.attrMap.getGroupAttrs(cat, group)
+		for attr in grpAttrs:
+			name = attr["name"]
+			label = attr["label"]
+			atype = attr["type"]
+								
+			try:
+				al = self.acl[name]
+			except KeyError:
+				print("Attribute (%s) missing" % name)
+				al = [""]
+
+			if atype != HIDDEN:					
+				nm = name+sfx
+				if len(al) > 1:
+					al = ["<keep>"] + al
+					al = [[x, x] for x in al]
+					self.pg.Append(SingleChoiceProperty(label, nm, al[0][1], al, "%s (%s)" % (label, name), "Choose value to use"))
+				else:
+					val = al[0]
+					if not ext is None:
+						val = val[ext-1]
+						
+					if atype == COLORTYPE:
+						p = ColorProperty(label, nm, value=val)
+						self.pg.Append(p)
+						self.pg.LimitPropertyEditing(p, True)
+						
+					elif atype in [ INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
+						l = self.attrMap.getChoices(atype)
+						p = SingleChoiceProperty(label, nm, val, l, "%s (%s)" % (label, name), "Choose value to use")
+						self.pg.Append(p)
+						self.pg.LimitPropertyEditing(p, True)
+						
+					elif atype == STRINGTYPE:
+						self.pg.Append(wxpg.StringProperty(label, nm, value=val) )
+					
+					elif atype == LONGSTRINGTYPE:
+						p = wxpg.LongStringProperty(label, nm, value=val)
+						self.pg.Append(p)
+						self.pg.LimitPropertyEditing(p, True)
+					
+					elif atype == BOOLEAN:
+						p = wxpg.BoolProperty(label, nm, value=(val != 'False'))
+						self.pg.Append(p)
+						self.pg.LimitPropertyEditing(p, True)
+													
 					else:
-						if atype == COLORTYPE:
-							p = ColorProperty(label, name, value=al[0])
-							self.pg.Append(p)
-							self.pg.LimitPropertyEditing(p, True)
-							
-						elif atype in [ INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
-							l = self.attrMap.getChoices(atype)
-							p = SingleChoiceProperty(label, name, al[0], l, "%s (%s)" % (label, name), "Choose value to use")
-							self.pg.Append(p)
-							self.pg.LimitPropertyEditing(p, True)
-							
-						elif atype == STRINGTYPE:
-							self.pg.Append(wxpg.StringProperty(label, name, value=al[0]) )
-						
-						elif atype == LONGSTRINGTYPE:
-							p = wxpg.LongStringProperty(label, name, value=al[0])
-							self.pg.Append(p)
-							self.pg.LimitPropertyEditing(p, True)
-						
-						elif atype == BOOLEAN:
-							p = wxpg.BoolProperty(label, name, value=(al[0] != 'False'))
-							self.pg.Append(p)
-							self.pg.LimitPropertyEditing(p, True)
-														
-						else:
-							print("invalid type for field %s: %s" % (name, atype))
+						print("invalid type for field %s: %s" % (name, atype))
 
 	def onPropertyChange(self, evt):
 		self.enablePendingChanges(True)
@@ -485,27 +545,25 @@ class CfgMain(wx.Frame):
 			fn = self.lbFiles.GetString(fx)
 
 			clist = self.attrMap.getGroups(cat)
+			print(str(clist))
 			for c in clist:
+				if self.attrMap.isExtruderCategory(cat) and self.attrMap.isExtruderGroup(cat, c):
+					print("extruder group: %s:%s" % (cat, c))
+					extGrpCount = len(self.extGroups)
+				else:
+					extGrpCount = 0
+					print("NOT extruder group: %s:%s" % (cat, c))
 				grpAttrs = self.attrMap.getGroupAttrs(cat, c)
 				for attr in grpAttrs:
 					name = attr["name"]
 					if attr["type"] != HIDDEN:
+						print("attr name: *%s)" % name)
 						try:
 							oldv = self.cfg.getAttribute(cat, fn, name)
 						except:
 							oldv = None
-						if attr["type"] == BOOLEAN:
-							if pgl[name] == 'True':
-								print("string true for %s" % name)
-								newv = True
-							elif pgl[name] == 'False':
-								print("string false for %s" % name)
-								newv = False
-							else:
-								print("true boolean value for %s" % name)
-								newv = '1' if pgl[name] else '0'
-						else:
-							newv = pgl[name]
+							
+						newv = self.getNewValue(name, attr, pgl, extGrpCount)
 
 						print("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
 						if oldv is None or (newv != "<keep>" and newv != oldv):
@@ -516,7 +574,37 @@ class CfgMain(wx.Frame):
 	
 		self.cfg.writeModified()				
 		self.enablePendingChanges(False)
-		
+
+	def getNewValue(self, name, attr, pgl, extGrpCount):
+		results = []
+		nms = []
+		if extGrpCount > 0:
+			for i in range(extGrpCount):
+				nms.append(name + ("%d" % (i+1)))
+		else:
+			nms = [name]
+			
+		print(str(nms))
+			
+		for nm in nms:
+			if attr["type"] == BOOLEAN:
+				if pgl[nm] == 'True':
+					print("string true for %s" % nm)
+					newv = '1'
+				elif pgl[nm] == 'False':
+					print("string false for %s" % nm)
+					newv = '0'
+				else:
+					print("true boolean value for %s" % nm)
+					newv = '1' if pgl[nm] else '0'
+			else:
+				newv = pgl[nm]
+				
+			results.append(newv)
+			
+		print(",".join(results))
+		return ",".join(results)
+					
 	def onCancel(self, _):
 		if not self.verifyLoseChanges("cancel"):
 			return 

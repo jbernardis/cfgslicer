@@ -1,9 +1,10 @@
 {
 	"categories": [ "filament", "print", "printer", "physical_printer" ],
+	"extruders": { "category": "printer", "group": "Extruder %d" },
 	
 	"filament": 
 	{
-		"categories" : [ "Filament", "Cooling", "Advanced", "Overrides", "Custom G-code", "Notes", "Dependencies" ],
+		"groups" : [ "Filament", "Cooling", "Advanced", "Overrides", "Custom G-code", "Notes", "Dependencies" ],
 		"Filament" : [ 
 			{ "name": "filament_colour", "label": "color", "type": "color" },
 			{ "name": "filament_diameter", "label": "diameter" },
@@ -84,7 +85,7 @@
 
 	"print":
 	{
-		"categories": [ "Layers and perimeters", "Infill", "Skirt and Brim", "Support", "Speed", "Mulltiple Extruders", "Advanced", "Output options", "Notes", "Dependencies" ],
+		"groups": [ "Layers and perimeters", "Infill", "Skirt and Brim", "Support", "Speed", "Mulltiple Extruders", "Advanced", "Output options", "Notes", "Dependencies" ],
 
 		"Layers and perimeters" : [
 			{ "name": "layer_height", "label": "layer height" },
@@ -240,7 +241,7 @@
 
 	"physical_printer":
 	{
-		"categories": [ "Physical printer" ],
+		"groups": [ "Physical printer" ],
 
 		"Physical printer" : [
 			{ "name": "host_type", "label": "host type" },
@@ -258,7 +259,7 @@
 
 	"printer":
 	{
-		"categories": [ "General", "Custom G-Code", "Machine limits", "Extruder 1", "Notes" ],
+		"groups": [ "General", "Custom G-Code", "Machine limits", "Extruder %d", "Single extruder MM Setup", "Notes" ],
 
 		"General" : [
 			{ "name": "bed_shape", "label": "bed shape" },
@@ -272,7 +273,7 @@
 			{ "name": "silent_mode", "label": "silent mode", "type": "boolean" },
 			{ "name": "remaining_times", "label": "remaining times", "type": "boolean" },
 			{ "name": "use_relative_e_distances", "label": "use relative e", "type": "boolean" },
-			{ "name": "use_firmware_retraction", "label": "use firmeare retraction", "type": "boolean" },
+			{ "name": "use_firmware_retraction", "label": "use firmware retraction", "type": "boolean" },
 			{ "name": "use_volumetric_e", "label": "use volumetric e", "type": "boolean" },
 			{ "name": "variable_layer_height", "label": "variable layer height", "type": "boolean" }
 		],
@@ -309,7 +310,7 @@
 			{ "name": "machine_min_travel_rate", "label": "minimum travel rate" }
 		],
 
-		"Extruder 1" : [
+		"Extruder %d" : [
 			{ "name": "nozzle_diameter", "label": "nozzle diameter" },
 			{ "name": "min_layer_height", "label": "minimum layer height" },
 			{ "name": "max_layer_height", "label": "maximum layer height" },
@@ -329,6 +330,15 @@
 			{ "name": "retract_restart_extra_toolchange", "label": "retract restart extra toolchange" },
 			{ "name": "extruder_colour", "label": "extruder color" }
 		],
+
+		"Single extruder MM Setup": [
+			{ "name": "cooling_tube_retraction", "label": "Cooling Tube Position" },
+			{ "name": "cooling_tube_length", "label": "Cooling tube length" },
+			{ "name": "parking_pos_retraction", "label": "Filament parking position" },
+			{ "name": "extra_loading_move", "label": "Extra loading distance" },
+			{ "name": "high_current_on_filament_swap", "label": "High extrusion current on filament swap", "type": "boolean" }
+		],
+		
 
 		"Notes" : [
 			{ "name": "printer_notes", "label": "notes", "type": "longstring" }

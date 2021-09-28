@@ -3,14 +3,30 @@ import datetime
 from configparser import RawConfigParser
 
 from cfgexceptions import CfgUnknownCategory, CfgUnknownFile, CfgDuplicateFile, CfgUnknownAttribute
-		
+
+EXTRUDER_KEY = "nozzle_diameter"
+
 class CfgInvalidColor(Exception):
 	def __init__(self):
 		pass
+	
 class CfgFile:
-	def __init__(self, attrdict):
+	def __init__(self, attrdict, basename, hasExtruder):
 		self.modified = False
 		self.attributes = attrdict
+		self.basename = basename
+		self.hasExtruder = hasExtruder
+		self.extruderCount = None
+		self.determineExtruderCount()
+		
+	def determineExtruderCount(self, extKey=EXTRUDER_KEY):
+		if self.hasExtruder and extKey in self.attributes:
+			exts = self.attributes[extKey].split(",")
+			self.extruderCount = len(exts)
+			print("extruder count = %d" % self.extruderCount)
+	
+		else:
+			self.extruderCount = None
 		
 	def setModified(self, flag=True):
 		self.modified = flag
@@ -24,26 +40,35 @@ class CfgFile:
 	def setAttributes(self, adict):
 		self.attributes = adict.copy()
 		self.setModified()
+		self.determineExtruderCount()
 	
 	def getAttribute(self, name):
 		try:
 			return self.attributes[name]
 		except KeyError:
 			raise CfgUnknownAttribute(name)
+		
+	def getExtruderCount(self):
+		return self.extruderCount
 	
 	def setAttribute(self, name, value, mustExist=False):
 		if mustExist:
 			if name not in self.attributes:
 				raise CfgUnknownAttribute(name)
-			
+
 		self.attributes[name] = value
 		self.setModified()
+		
+		if name == EXTRUDER_KEY:
+			self.determineExtruderCount()						
 	
 	
 class CfgSlicer:	
-	def __init__(self, root, dirs):
+	def __init__(self, root, dirs, attrMap):
 		self.root = root
 		self.dirs = dirs
+		self.attrMap = attrMap
+		self.extruderCategory = self.attrMap.getExtruderCategory()
 		self.loadAttributes()
 		
 	def loadAttributes(self):
@@ -63,8 +88,10 @@ class CfgSlicer:
 				fa = {}					
 				for k, v in parser.items("top"):
 					fa[k] = v
-				fm[os.path.splitext(os.path.basename(fp))[0]] = CfgFile(fa)
-				fx[os.path.splitext(os.path.basename(fp))[0]] = os.path.splitext(os.path.basename(fp))[1]
+					
+				bn = os.path.basename(fp)
+				fm[os.path.splitext(bn)[0]] = CfgFile(fa, bn, d == self.extruderCategory)
+				fx[os.path.splitext(bn)[0]] = os.path.splitext(bn)[1]
 				
 			self.fileMap[d] = fm
 			self.fileExt[d] = fx	
@@ -98,7 +125,7 @@ class CfgSlicer:
 				
 		self.fileMap[cat][fn].setModified(False)
 		
-	def getRoorDir(self):
+	def getRootDir(self):
 		return self.root
 	
 	def getCatRoot(self, cat):
@@ -135,6 +162,14 @@ class CfgSlicer:
 		
 		del(self.fileMap[cat][fn])
 		del(self.fileExt[cat][fn])
+		
+	def getExtruderCount(self, fn):
+		print(str(list(self.fileMap[self.extruderCategory].keys())))
+		if fn not in self.fileMap[self.extruderCategory]:
+			return None
+				
+		return self.fileMap[self.extruderCategory][fn].getExtruderCount()
+	
 	
 	def getAttribute(self, cat, fn, name):
 		if cat not in self.fileMap:
@@ -169,4 +204,6 @@ class CfgSlicer:
 		
 		return sorted(list(self.fileMap[cat].keys()))
 		
+
 		
+

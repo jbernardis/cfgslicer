@@ -3,3 +3,11 @@ have attribute types - perextruder, 2 value fields - like machine limits, etc
 handle multiple extruders (low priority)
 
 unbundle
+
+set different root
+
+store root in config file - not in code
+
+change configuration - slic3r/prusaslicer/superslicer
+
+work in slicer version somehow?
