@@ -1,13 +1,5 @@
-have attribute types - perextruder, 2 value fields - like machine limits, etc
-       
-handle multiple extruders (low priority)
+have attribute types - 2 value fields - like machine limits, etc
 
-unbundle
-
-set different root
-
-store root in config file - not in code
-
-change configuration - slic3r/prusaslicer/superslicer
+unbundle - add meaningful info to unbundle - at least a count, but maybe also files extracted.  also, check for existance of directpories and ini files in bundle file
 
 work in slicer version somehow?

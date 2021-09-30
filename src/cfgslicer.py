@@ -1,6 +1,7 @@
 import os
 import datetime
 from configparser import RawConfigParser
+import logging
 
 from cfgexceptions import CfgUnknownCategory, CfgUnknownFile, CfgDuplicateFile, CfgUnknownAttribute
 
@@ -23,7 +24,7 @@ class CfgFile:
 		if self.hasExtruder and extKey in self.attributes:
 			exts = self.attributes[extKey].split(",")
 			self.extruderCount = len(exts)
-			print("extruder count = %d" % self.extruderCount)
+			logging.debug("extruder count = %d" % self.extruderCount)
 	
 		else:
 			self.extruderCount = None
@@ -68,15 +69,21 @@ class CfgSlicer:
 		self.root = root
 		self.dirs = dirs
 		self.attrMap = attrMap
+		self.missingDirs = []
 		self.extruderCategory = self.attrMap.getExtruderCategory()
 		self.loadAttributes()
 		
 	def loadAttributes(self):
 		self.fileMap = {}
 		self.fileExt = {}
+		self.missingDirs = []
 		for d in self.dirs:
 			path = os.path.join(self.root, d)
-			fl = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith(".ini")]
+			try:
+				fl = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith(".ini")]
+			except FileNotFoundError:
+				self.missingDirs.append(d)
+				continue
 
 			fm = {}
 			fx = {}
@@ -95,6 +102,9 @@ class CfgSlicer:
 				
 			self.fileMap[d] = fm
 			self.fileExt[d] = fx	
+			
+	def getMissingDirs(self):
+		return self.missingDirs
 			
 	def isAnyModified(self):
 		for cat in self.fileMap:
@@ -164,7 +174,6 @@ class CfgSlicer:
 		del(self.fileExt[cat][fn])
 		
 	def getExtruderCount(self, fn):
-		print(str(list(self.fileMap[self.extruderCategory].keys())))
 		if fn not in self.fileMap[self.extruderCategory]:
 			return None
 				

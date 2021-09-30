@@ -1,5 +1,11 @@
 import wx
 import wx.propgrid as wxpg
+import os, inspect
+import logging
+
+logfile = "cfgslicer.log"
+
+cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
 
 from settings import Settings
 from cfgslicer import CfgSlicer
@@ -10,44 +16,88 @@ from colorproperty import ColorProperty
 from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN, BOOLEAN
 from bundle import BundleDlg, UnBundleDlg
 
-MENU_AUDIT = 101
-MENU_RELOAD = 102
-MENU_BUNDLE = 103
-MENU_UNBUNDLE = 104
+MENU_TOOLS = 100
+MENU_TOOLS_AUDIT = 101
+MENU_TOOLS_RELOAD = 102
+MENU_TOOLS_BUNDLE = 103
+MENU_TOOLS_UNBUNDLE = 104
+
+MENU_SETTINGS = 200
+MENU_SETTINGS_ROOT = 201
+MENU_SETTINGS_ATTRIB = 202
 
 class CfgMain(wx.Frame):
 	def __init__(self):
 		wx.Frame.__init__(self, None, wx.ID_ANY, "Slicer x Configuration x Manager", size=(500, 500))
-		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 		
 		self.CenterOnScreen()
 
 		self.CreateStatusBar()
-		#self.SetStatusText("This is the statusbar")
-		
-		self.attrMap = AttributeMap("attributes.json")
-		self.settings = Settings() 
-		self.cats = self.attrMap.getCategories()
-		
-		self.cfg = CfgSlicer(self.settings.root, self.cats, self.attrMap)
-		self.extGroup = self.attrMap.getExtruderGroup()
 		
 		menuBar = wx.MenuBar()
 
 		# 1st menu from left
+		menuSettings = wx.Menu()
+		menuSettings.Append(MENU_SETTINGS_ROOT, "Slicer Configuration Root", "set new location for slicer configuration files")
+		menuSettings.Append(MENU_SETTINGS_ATTRIB, "Attribute map", "set new location for slicer attributes map")
+		menuBar.Append(menuSettings, "Settings")
+		
 		menuTools = wx.Menu()
-		menuTools.Append(MENU_AUDIT, "Audit", "Compare a file with configured options")
-		menuTools.Append(MENU_RELOAD, "Reload", "Reload INI files")
-		menuTools.Append(MENU_BUNDLE, "Bundle", "Bundle INI files into a ZIP file")
-		menuTools.Append(MENU_UNBUNDLE, "Unbundle", "Unbundle INI files from a ZIP file")
-
+		menuTools.Append(MENU_TOOLS_AUDIT, "Audit", "Compare a slicer configuration file against current attribute map")
+		menuTools.Append(MENU_TOOLS_RELOAD, "Reload", "Reload slicer configuration files")
+		menuTools.AppendSeparator()
+		menuTools.Append(MENU_TOOLS_BUNDLE, "Bundle", "Bundle slicer configuration files into a ZIP file")
+		menuTools.Append(MENU_TOOLS_UNBUNDLE, "Unbundle", "Extract slicer configuration files from a ZIP file")
 		menuBar.Append(menuTools, "Tools")
+		
 		self.SetMenuBar(menuBar)
-		self.Bind(wx.EVT_MENU, self.onAudit, id=MENU_AUDIT)
-		self.Bind(wx.EVT_MENU, self.onReload, id=MENU_RELOAD)
-		self.Bind(wx.EVT_MENU, self.onBundle, id=MENU_BUNDLE)
-		self.Bind(wx.EVT_MENU, self.onUnbundle, id=MENU_UNBUNDLE)
+		
+		sizer = wx.BoxSizer(wx.HORIZONTAL)		
+		self.panel = CfgPanel(self)
+		sizer.Add(self.panel)
+		
+		
+		self.Bind(wx.EVT_MENU, self.panel.onAudit, id=MENU_TOOLS_AUDIT)
+		self.Bind(wx.EVT_MENU, self.panel.onReload, id=MENU_TOOLS_RELOAD)
+		self.Bind(wx.EVT_MENU, self.panel.onBundle, id=MENU_TOOLS_BUNDLE)
+		self.Bind(wx.EVT_MENU, self.panel.onUnbundle, id=MENU_TOOLS_UNBUNDLE)
+		self.Bind(wx.EVT_MENU, self.panel.onRoot, id=MENU_SETTINGS_ROOT)
+		self.Bind(wx.EVT_MENU, self.panel.onAttrib, id=MENU_SETTINGS_ATTRIB)
+
+		self.SetSizer(sizer)
+		self.Layout()
+		self.Fit();
+	
+	def onClose(self, _):
+		if self.panel.onClose(None):
+			self.Destroy()
+
+class CfgPanel(wx.Panel):
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
+		self.parent = parent
+		self.SetBackgroundColour(wx.Colour(255, 255, 255))
+		self.Bind(wx.EVT_CLOSE, self.onClose)
+		
+		logging.basicConfig(filename=logfile,
+				filemode='w',
+				format='%(asctime)s - %(levelname)s - %(message)s',
+				level=logging.INFO)		
+		
+		self.settings = Settings(cmdFolder) 
+		self.attrMap = AttributeMap(self.settings.attrFile)
+		self.cats = self.attrMap.getCategories()
+		
+		self.cfg = CfgSlicer(self.settings.root, self.cats, self.attrMap)
+		md = self.cfg.getMissingDirs()
+		if len(md) > 0:
+			self.parent.SetStatusText("Configuration directories missing: %s" % str(md))
+			self.badConfig = True
+		else:
+			self.badConfig = False
+		
+		self.extGroup = self.attrMap.getExtruderGroup()
 				
 		self.nchecked = 0
 		self.propertiesChanged = False
@@ -156,8 +206,6 @@ class CfgMain(wx.Frame):
 		self.pg = wxpg.PropertyGrid(self, id=wx.ID_ANY, size=(1000, 300))
 		wvsz.Add(self.pg)
 		self.pg.Bind(wxpg.EVT_PG_CHANGED, self.onPropertyChange)
-		
-		
 		wvsz.AddSpacer(20)	
 		whsz.Add(wvsz)
 		
@@ -175,16 +223,13 @@ class CfgMain(wx.Frame):
 		self.Show()
 		
 		self.loadCategory(self.currentCategory)
-		p = int(self.pg.GetSplitterPosition()/2)
-		if p < 250:
-			p = 250
-		self.pg.SetSplitterPosition(p)
 		
 	def setTitle(self):
+		ts = self.titleString + " - " + self.settings.root
 		if self.propertiesChanged:
-			self.SetTitle(self.titleString + "  *")
-		else:
-			self.SetTitle(self.titleString)
+			ts += "  *"
+			
+		self.parent.SetTitle(ts)
 		
 	def onCategory(self, _):
 		cx = self.chCategory.GetCurrentSelection()
@@ -193,6 +238,11 @@ class CfgMain(wx.Frame):
 			self.loadCategory(self.currentCategory)
 
 	def loadCategory(self, cat):
+		if self.badConfig:
+			logging.error("returning from loadcategory due to bad configuration")
+			self.fl = []
+			return 
+		
 		self.fl = self.cfg.getFileList(cat)
 		#self.fl = [os.path.splitext(x)[0] for x in fl]
 		self.lbFiles.Set(self.fl)
@@ -371,6 +421,10 @@ class CfgMain(wx.Frame):
 		return cl
 	
 	def loadProperties(self, idxl):
+		if self.badConfig:
+			logging.error("returning from loadproperties due to bad configuration")
+			return
+		
 		self.pg.Clear()
 		cat = self.currentCategory
 		self.acl = {}
@@ -391,30 +445,32 @@ class CfgMain(wx.Frame):
 				a = self.attrMap.getSingleAttribute(cat, label)
 				if a:
 					if self.attrMap.isExtruderAttribute(cat, label):
-						print("%s is an extruder attribute" % label)
+						logging.debug("%s is an extruder attribute" % label)
 						vl = al[label].split(",")
-						print("length: %d vs %d" % (len(vl), nExt))
-						print(str(vl))
 						if len(vl) < nExt:
 							vl.extend([vl[0]] * (nExt-len(vl)))
 						elif len(vl) > nExt:
 							vl = vl[:nExt]
-						print(str(vl))
 						vl = [self.parseAttribute(v, a["type"]) for v in vl]
-						print(str(vl))
 						value = vl
 					else:
 						value = self.parseAttribute(al[label], a["type"])
+					logging.debug("attribute value: (%s)" % str(value))
 				else:
 					# no attribute found!!
 					value = al[label]
-					print("this is an error - no attributes found for (%s:%s)" % (cat, label))
+					logging.warning("no attributes found for (%s:%s)" % (cat, label))
 				if label not in self.acl:
 					self.acl[label] = []
 					
 				if value not in self.acl[label]:
 					self.acl[label].append(value)
 					
+		p = int(self.pg.GetSplitterPosition()/2)
+		if p < 250:
+			p = 250
+		self.pg.SetSplitterPosition(p)
+
 		if len(self.acl) == 0:
 			return
 					
@@ -425,9 +481,6 @@ class CfgMain(wx.Frame):
 					self.populateGroup(cat, c, ex+1)
 			else:
 				self.populateGroup(cat, c)
-				
-		print("extruder groups:" )
-		print(str(self.extGroups))
 	
 	def parseAttribute(self, v, t):
 		if t == BOOLEAN:
@@ -436,7 +489,7 @@ class CfgMain(wx.Frame):
 			elif v in [ '1', "True", "true" ]:
 				return 'True'
 			else:
-				print("interpreting unknown value (%s) as True" % v)
+				logging.info("interpreting unknown value (%s) as True" % v)
 				return 'True'
 		else: # not a boolean
 			return v
@@ -451,7 +504,7 @@ class CfgMain(wx.Frame):
 			self.extGroups.append(lbl)
 			sfx = "%d" % ext
 			
-		print("populate group (%s) (%s) (%s)" % (cat, group, lbl))
+		logging.debug("populate group (%s) (%s) (%s)" % (cat, group, lbl))
 		self.pg.Append( wxpg.PropertyCategory(lbl+":") )	
 		grpAttrs = self.attrMap.getGroupAttrs(cat, group)
 		for attr in grpAttrs:
@@ -462,7 +515,7 @@ class CfgMain(wx.Frame):
 			try:
 				al = self.acl[name]
 			except KeyError:
-				print("Attribute (%s) missing" % name)
+				logging.debug("Attribute (%s) missing" % name)
 				al = [""]
 
 			if atype != HIDDEN:					
@@ -501,7 +554,7 @@ class CfgMain(wx.Frame):
 						self.pg.LimitPropertyEditing(p, True)
 													
 					else:
-						print("invalid type for field %s: %s" % (name, atype))
+						logging.error("invalid type for field %s: %s" % (name, atype))
 
 	def onPropertyChange(self, evt):
 		self.enablePendingChanges(True)
@@ -513,7 +566,7 @@ class CfgMain(wx.Frame):
 		if flag:
 			self.allowCopy(False)
 			self.allowDelete(False)
-			self.SetStatusText("Changes pending")
+			self.parent.SetStatusText("Changes pending")
 		else:
 			if self.nchecked == 0:	
 				self.allowCopy(True)
@@ -521,7 +574,7 @@ class CfgMain(wx.Frame):
 			else:
 				self.allowCopy(False)
 				self.allowDelete(False)
-			self.SetStatusText("")
+			self.parent.SetStatusText("")
 			
 		self.lbFiles.Enable(not flag)
 		self.chCategory.Enable(not flag)
@@ -540,24 +593,25 @@ class CfgMain(wx.Frame):
 			idxl = [ self.lbFiles.GetSelection() ]
 		else:
 			idxl = self.getCheckedList()
-			
+	
+		logging.debug("saving attributes")		
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
 
 			clist = self.attrMap.getGroups(cat)
-			print(str(clist))
+			logging.debug("groups: (%s)" % (str(clist)))
 			for c in clist:
 				if self.attrMap.isExtruderCategory(cat) and self.attrMap.isExtruderGroup(cat, c):
-					print("extruder group: %s:%s" % (cat, c))
+					logging.debug("extruder group: %s:%s" % (cat, c))
 					extGrpCount = len(self.extGroups)
 				else:
 					extGrpCount = 0
-					print("NOT extruder group: %s:%s" % (cat, c))
+					logging.debug("NOT extruder group: %s:%s" % (cat, c))
 				grpAttrs = self.attrMap.getGroupAttrs(cat, c)
 				for attr in grpAttrs:
 					name = attr["name"]
 					if attr["type"] != HIDDEN:
-						print("attr name: *%s)" % name)
+						logging.debug("attr name: *%s)" % name)
 						try:
 							oldv = self.cfg.getAttribute(cat, fn, name)
 						except:
@@ -565,12 +619,12 @@ class CfgMain(wx.Frame):
 							
 						newv = self.getNewValue(name, attr, pgl, extGrpCount)
 
-						print("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
+						logging.debug("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
 						if oldv is None or (newv != "<keep>" and newv != oldv):
 							self.cfg.setAttribute(cat, fn, name, newv)
-							print("updated attributes")
+							logging.debug("updated attributes")
 					else:
-						print("hidden attribute: %s" % name)
+						logging.debug("hidden attribute: %s" % name)
 	
 		self.cfg.writeModified()				
 		self.enablePendingChanges(False)
@@ -584,26 +638,27 @@ class CfgMain(wx.Frame):
 		else:
 			nms = [name]
 			
-		print(str(nms))
+		logging.debug("getnewvalue: names list = %s" % str(nms))
 			
 		for nm in nms:
 			if attr["type"] == BOOLEAN:
 				if pgl[nm] == 'True':
-					print("string true for %s" % nm)
+					logging.debug("string true for %s" % nm)
 					newv = '1'
 				elif pgl[nm] == 'False':
-					print("string false for %s" % nm)
+					logging.debug("string false for %s" % nm)
 					newv = '0'
 				else:
-					print("true boolean value for %s" % nm)
+					logging.debug("true boolean value for %s" % nm)
 					newv = '1' if pgl[nm] else '0'
 			else:
 				newv = pgl[nm]
 				
 			results.append(newv)
 			
-		print(",".join(results))
-		return ",".join(results)
+		result = ",".join(results)
+		logging.debug("getnewvalue result = (%s)" % result)
+		return result
 					
 	def onCancel(self, _):
 		if not self.verifyLoseChanges("cancel"):
@@ -626,8 +681,17 @@ class CfgMain(wx.Frame):
 		if self.propertiesChanged:
 			if not self.verifyLoseChanges("reload"):
 				return 
-
-		self.cfg = CfgSlicer(self.settings.root, self.cats)
+		self.doReload()
+		
+	def doReload(self):
+		self.cfg = CfgSlicer(self.settings.root, self.cats, self.attrMap)
+		md = self.cfg.getMissingDirs()
+		if len(md) > 0:
+			self.parent.SetStatusText("Configuration directories missing: %s" % str(md))
+			self.badConfig = True
+		else:
+			self.badConfig = False
+			
 		self.selected = None
 		self.lbFiles.SetSelection(wx.NOT_FOUND)
 		self.loadProperties([])
@@ -641,16 +705,80 @@ class CfgMain(wx.Frame):
 		dlg.Destroy()
 		
 	def onUnbundle(self, _):
-		dlg = UnBundleDlg(self, self.settings.root)
+		dlg = UnBundleDlg(self, self.settings.root, self.cats)
+		dlg.ShowModal()
+		nr = dlg.getNewRoot()
+		if nr is not None:
+			self.settings.root = nr
+			self.setTitle()
+			self.settings.save()
+			self.doReload()
+			
+		dlg.Destroy()
+		
+	def onRoot(self, _):
+		if self.propertiesChanged:
+			if not self.verifyLoseChanges("switch to new root"):
+				return 
+
+		dlg = wx.DirDialog(self, "Choose a Slicer configuration directory:", style=wx.DD_DEFAULT_STYLE)		
+		dlg.SetPath(self.settings.root)
+		rc = dlg.ShowModal()
+		if rc == wx.ID_OK:
+			self.settings.root = dlg.GetPath()
+
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return
+
+		self.setTitle()		
+		self.settings.save()
+		
+		self.doReload()
+
+		
+	def onAttrib(self, _):
+		wildcard = "JSON (*.json)|*.json;*.JSON"
+		
+		abspath = os.path.abspath(self.settings.attrFile)
+		
+		d, f = os.path.split(abspath)
+			
+		dlg = wx.FileDialog(
+			self, message="Choose a JSON-formatted attribute file",
+			defaultDir=d, 
+			defaultFile=f,
+			wildcard=wildcard,
+			style=wx.FD_OPEN)
+
+		rc = dlg.ShowModal()
+		
+		if rc == wx.ID_OK:
+			self.settings.attrFile = dlg.GetPath()
+			
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return
+		
+		self.settings.save()
+		
+		self.restartRequired("Attribute map")
+				
+	def restartRequired(self, msg):
+		dlg = wx.MessageDialog(self,
+				"You must restart the program for this new %s to become effective" % msg,
+				"Restart Required",
+				wx.OK | wx.ICON_WARNING)
 		dlg.ShowModal()
 		dlg.Destroy()
 				
 	def onClose(self, _):
 		if self.propertiesChanged:
 			if not self.verifyLoseChanges("exit"):
-				return 
+				return False
 			
 		self.Destroy()
+		return True
 		
 	def verifyLoseChanges(self, action):
 		dlg = wx.MessageDialog(self,

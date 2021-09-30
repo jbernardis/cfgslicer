@@ -87,12 +87,10 @@ class AttributeMap:
 		return self.attrMap["choicetypes"][ctype]
 
 	def __call__(self, cat):
-		print("in call")
 		self.iterCat = cat
 		return self
 			
 	def __iter__(self):
-		print("in iter, cat = (%s)" % self.iterCat)
 		self.attrList = []	
 		for grp in self.attrMap[self.iterCat]["groups"]:
 			self.attrList.extend(self.attrMap[self.iterCat][grp])
