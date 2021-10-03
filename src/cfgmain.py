@@ -39,7 +39,6 @@ class CfgMain(wx.Frame):
 		
 		menuBar = wx.MenuBar()
 
-		# 1st menu from left
 		menuSettings = wx.Menu()
 		menuSettings.Append(MENU_SETTINGS_ROOT, "Slicer Configuration Root", "set new location for slicer configuration files")
 		menuSettings.Append(MENU_SETTINGS_ATTRIB, "Attribute map", "set new location for slicer attributes map")
@@ -202,8 +201,7 @@ class CfgPanel(wx.Panel):
 		whsz.Add(wvsz)
 		whsz.AddSpacer(10)
 		
-		wvsz = wx.BoxSizer(wx.VERTICAL)
-		
+		wvsz = wx.BoxSizer(wx.VERTICAL)		
 		
 		self.pg = wxpg.PropertyGrid(self, id=wx.ID_ANY, size=(1000, 300))
 		wvsz.Add(self.pg)
@@ -245,7 +243,6 @@ class CfgPanel(wx.Panel):
 			return 
 		
 		self.fl = self.cfg.getFileList(cat)
-		#self.fl = [os.path.splitext(x)[0] for x in fl]
 		self.lbFiles.Set(self.fl)
 		self.nchecked = 0
 		self.allowDelete(False)
@@ -695,7 +692,7 @@ class CfgPanel(wx.Panel):
 			
 		self.selected = None
 		self.lbFiles.SetSelection(wx.NOT_FOUND)
-		self.loadProperties([])
+		self.loadCategory(self.currentCategory)
 		self.enablePendingChanges(False)
 		self.allowCopy(False)
 		self.allowDelete(False)
@@ -738,8 +735,7 @@ class CfgPanel(wx.Panel):
 		dlg.Destroy()
 		if rc != wx.ID_OK:
 			return
-				
-				
+			
 		fl = [f for f in os.listdir(newroot) if os.path.isdir(os.path.join(newroot, f))]
 		missing = []
 		for cat in self.cats:
@@ -760,7 +756,6 @@ class CfgPanel(wx.Panel):
 			self.settings.save()
 			
 			self.doReload()
-
 		
 	def onAttrib(self, _):
 		wildcard = "JSON (*.json)|*.json;*.JSON"
@@ -813,7 +808,6 @@ class CfgPanel(wx.Panel):
 		dlg.Destroy()
 
 		return rc == wx.ID_YES
-
 
 if __name__ == '__main__':
 	app = wx.App()
