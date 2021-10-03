@@ -4,6 +4,7 @@ import os, inspect
 import logging
 
 logfile = "cfgslicer.log"
+loglevel = logging.INFO
 
 cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
 
@@ -30,6 +31,7 @@ class CfgMain(wx.Frame):
 	def __init__(self):
 		wx.Frame.__init__(self, None, wx.ID_ANY, "Slicer x Configuration x Manager", size=(500, 500))
 		self.Bind(wx.EVT_CLOSE, self.onClose)
+		self.SetBackgroundColour(wx.Colour(255, 255, 255))
 		
 		self.CenterOnScreen()
 
@@ -52,11 +54,20 @@ class CfgMain(wx.Frame):
 		menuBar.Append(menuTools, "Tools")
 		
 		self.SetMenuBar(menuBar)
-		
-		sizer = wx.BoxSizer(wx.HORIZONTAL)		
+
+		logging.basicConfig(filename=logfile,
+				filemode='w',
+				format='%(asctime)s - %(levelname)s - %(message)s',
+				level=loglevel)	
+
+		sz = wx.BoxSizer()		
 		self.panel = CfgPanel(self)
-		sizer.Add(self.panel)
+		sz.Add(self.panel)
+		self.SetSizer(sz)
 		
+		self.Layout()
+		self.Fit()
+		self.Show()
 		
 		self.Bind(wx.EVT_MENU, self.panel.onAudit, id=MENU_TOOLS_AUDIT)
 		self.Bind(wx.EVT_MENU, self.panel.onReload, id=MENU_TOOLS_RELOAD)
@@ -64,27 +75,18 @@ class CfgMain(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.panel.onUnbundle, id=MENU_TOOLS_UNBUNDLE)
 		self.Bind(wx.EVT_MENU, self.panel.onRoot, id=MENU_SETTINGS_ROOT)
 		self.Bind(wx.EVT_MENU, self.panel.onAttrib, id=MENU_SETTINGS_ATTRIB)
-
-		self.SetSizer(sizer)
-		self.Layout()
-		self.Fit();
-	
+		
 	def onClose(self, _):
-		if self.panel.onClose(None):
-			self.Destroy()
-
+		if not self.panel.okToClose():
+			return
+			
+		self.Destroy()
+		
 class CfgPanel(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
 		self.parent = parent
-		self.SetBackgroundColour(wx.Colour(255, 255, 255))
-		self.Bind(wx.EVT_CLOSE, self.onClose)
-		
-		logging.basicConfig(filename=logfile,
-				filemode='w',
-				format='%(asctime)s - %(levelname)s - %(message)s',
-				level=logging.INFO)		
-		
+
 		self.settings = Settings(cmdFolder) 
 		self.attrMap = AttributeMap(self.settings.attrFile)
 		self.cats = self.attrMap.getCategories()
@@ -220,7 +222,6 @@ class CfgPanel(wx.Panel):
 		
 		self.Layout()
 		self.Fit()
-		self.Show()
 		
 		self.loadCategory(self.currentCategory)
 		
@@ -455,7 +456,7 @@ class CfgPanel(wx.Panel):
 						value = vl
 					else:
 						value = self.parseAttribute(al[label], a["type"])
-					logging.debug("attribute value: (%s)" % str(value))
+					logging.debug("attribute %s value: (%s)" % (label, str(value)))
 				else:
 					# no attribute found!!
 					value = al[label]
@@ -484,7 +485,7 @@ class CfgPanel(wx.Panel):
 	
 	def parseAttribute(self, v, t):
 		if t == BOOLEAN:
-			if v in [ '0', "False", "false" ]:
+			if v in [ '0', "False", "false", "nil" ]:
 				return 'False'
 			elif v in [ '1', "True", "true" ]:
 				return 'True'
@@ -706,16 +707,23 @@ class CfgPanel(wx.Panel):
 		
 	def onUnbundle(self, _):
 		dlg = UnBundleDlg(self, self.settings.root, self.cats)
-		dlg.ShowModal()
-		nr = dlg.getNewRoot()
-		if nr is not None:
-			self.settings.root = nr
-			self.setTitle()
-			self.settings.save()
-			self.doReload()
+		rc = dlg.ShowModal()
+		if rc == wx.ID_OK:
+			nr = dlg.getNewRoot()
 			
 		dlg.Destroy()
 		
+		if rc != wx.ID_OK:
+			return 
+
+		if nr is None:
+			return
+		
+		self.settings.root = nr
+		self.setTitle()
+		self.settings.save()
+		self.doReload()
+
 	def onRoot(self, _):
 		if self.propertiesChanged:
 			if not self.verifyLoseChanges("switch to new root"):
@@ -725,16 +733,33 @@ class CfgPanel(wx.Panel):
 		dlg.SetPath(self.settings.root)
 		rc = dlg.ShowModal()
 		if rc == wx.ID_OK:
-			self.settings.root = dlg.GetPath()
+			newroot = dlg.GetPath()
 
 		dlg.Destroy()
 		if rc != wx.ID_OK:
 			return
-
-		self.setTitle()		
-		self.settings.save()
-		
-		self.doReload()
+				
+				
+		fl = [f for f in os.listdir(newroot) if os.path.isdir(os.path.join(newroot, f))]
+		missing = []
+		for cat in self.cats:
+			if cat not in fl:
+				missing.append(cat)
+				
+		if len(missing) > 0:
+			dlg = wx.MessageDialog(self,
+					"The following subdirectories are missing: \n%s" % ",".join(missing),
+					"Subdirectories missing",
+					wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+			return
+		else:
+			self.settings.root = newroot
+			self.setTitle()		
+			self.settings.save()
+			
+			self.doReload()
 
 		
 	def onAttrib(self, _):
@@ -772,12 +797,11 @@ class CfgPanel(wx.Panel):
 		dlg.ShowModal()
 		dlg.Destroy()
 				
-	def onClose(self, _):
+	def okToClose(self):
 		if self.propertiesChanged:
 			if not self.verifyLoseChanges("exit"):
 				return False
 			
-		self.Destroy()
 		return True
 		
 	def verifyLoseChanges(self, action):

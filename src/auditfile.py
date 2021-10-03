@@ -100,7 +100,7 @@ class AuditFileDlg(wx.Dialog):
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(10)
 		
-		self.bGo = wx.Button(self, wx.ID_ANY, "Go")
+		self.bGo = wx.Button(self, wx.ID_ANY, "Audit")
 		hsz.Add(self.bGo)
 		self.Bind(wx.EVT_BUTTON, self.onbGo, self.bGo)
 		

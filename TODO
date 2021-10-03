@@ -1,5 +1,5 @@
 have attribute types - 2 value fields - like machine limits, etc
 
-unbundle - add meaningful info to unbundle - at least a count, but maybe also files extracted.  also, check for existance of directpories and ini files in bundle file
+put tabs back into main screen - panel inside frame
 
 work in slicer version somehow?

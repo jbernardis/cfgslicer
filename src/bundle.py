@@ -51,11 +51,17 @@ class BundleDlg(wx.Dialog):
 		
 		hsz.Add(wx.StaticText(self, wx.ID_ANY, "", size=(100, -1)), 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		self.bGo = wx.Button(self, wx.ID_ANY, "GO")
+		self.bGo = wx.Button(self, wx.ID_ANY, "Bundle")
 		self.Bind(wx.EVT_BUTTON, self.onbGo, self.bGo)	
 		self.bGo.Enable(False)
 		hsz.Add(self.bGo)		
 		hsz.AddSpacer(20)
+		
+		self.bCancel = wx.Button(self, wx.ID_ANY, "Exit")
+		self.Bind(wx.EVT_BUTTON, self.onClose, self.bCancel)	
+		hsz.Add(self.bCancel)		
+		hsz.AddSpacer(20)
+		
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)
 		
@@ -114,6 +120,8 @@ class BundleDlg(wx.Dialog):
 		dlg.ShowModal()
 		dlg.Destroy()
 		
+		self.EndModal(wx.ID_OK)
+		
 	def onClose(self, _):
 		self.EndModal(wx.ID_OK)
 
@@ -128,28 +136,27 @@ class UnBundleDlg(wx.Dialog):
 		
 		vsizer = wx.BoxSizer(wx.VERTICAL)
 		vsizer.AddSpacer(20)
-		
-		hsz = wx.BoxSizer(wx.HORIZONTAL)
-		hsz.AddSpacer(20)	
+
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)
-		
+
 		hsz.Add(wx.StaticText(self, wx.ID_ANY, "Bundle File:", size=(100, -1)), 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
 		self.bZipFile = wx.Button(self, wx.ID_ANY, "...", size=(20, -1))
 		self.Bind(wx.EVT_BUTTON, self.onbZipFile, self.bZipFile)	
 		hsz.Add(self.bZipFile)		
 		hsz.AddSpacer(10)
+		
 		self.stZipFile = wx.StaticText(self, wx.ID_ANY, "", size=(400, -1))
 		self.zipfile = None
 		hsz.Add(self.stZipFile, 0, wx.TOP, 4)		
 		hsz.AddSpacer(20)
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)
-		
+
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)
-		
+
 		hsz.Add(wx.StaticText(self, wx.ID_ANY, "Destination:", size=(100, -1)), 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
 		self.bRoot = wx.Button(self, wx.ID_ANY, "...", size=(20, -1))
@@ -160,33 +167,35 @@ class UnBundleDlg(wx.Dialog):
 		hsz.Add(self.stRoot, 0, wx.TOP, 4)		
 		hsz.AddSpacer(20)
 		vsizer.Add(hsz)
-		vsizer.AddSpacer(20)
-		
+		vsizer.AddSpacer(5)
+
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)
-		
+
 		hsz.Add(wx.StaticText(self, wx.ID_ANY, "", size=(100, -1)))
-		hsz.AddSpacer(10)
+		hsz.AddSpacer(30)
 		self.cbNewRoot = wx.CheckBox(self, wx.ID_ANY, "Set as root and reload")
 		hsz.Add(self.cbNewRoot)		
 		hsz.AddSpacer(20)
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)
-				
+
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)
-		
+
 		hsz.Add(wx.StaticText(self, wx.ID_ANY, "", size=(100, -1)), 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		self.bGo = wx.Button(self, wx.ID_ANY, "GO")
+		self.bGo = wx.Button(self, wx.ID_ANY, "Un-Bundle")
 		self.Bind(wx.EVT_BUTTON, self.onbGo, self.bGo)	
 		self.bGo.Enable(False)
 		hsz.Add(self.bGo)		
 		hsz.AddSpacer(20)
-		vsizer.Add(hsz)
-		vsizer.AddSpacer(20)
 		
-				
+		self.bCancel = wx.Button(self, wx.ID_ANY, "Exit")
+		self.Bind(wx.EVT_BUTTON, self.onClose, self.bCancel)	
+		hsz.Add(self.bCancel)		
+		hsz.AddSpacer(20)
+
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)			
 		
@@ -202,21 +211,50 @@ class UnBundleDlg(wx.Dialog):
 		rc = dlg.ShowModal()
 		if rc == wx.ID_OK:
 			zf = dlg.GetPath()
-			if not is_zipfile(zf):
-				dlg.Destroy()
-				self.bGo.Enable(False)
-				dlg = wx.MessageDialog(self,
-					"File %s is not a valid zip file" % zf,
-					"Not a zip file",
-					wx.OK | wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
-			else:
-				self.zipfile = zf
-				self.stZipFile.SetLabel(self.zipfile)
-				self.bGo.Enable(True)
-				dlg.Destroy()
-		
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return
+
+		if not is_zipfile(zf):
+			self.bGo.Enable(False)
+			dlg = wx.MessageDialog(self,
+				"File %s is not a valid zip file" % zf,
+				"Not a zip file",
+				wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+		elif not self.isBundle(zf):
+			self.bGo.Enable(False)
+			dlg = wx.MessageDialog(self,
+				"File %s is not a valid bundle file" % zf,
+				"Not a bundle file",
+				wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+		else:
+			self.zipfile = zf
+			self.stZipFile.SetLabel(self.zipfile)
+			self.bGo.Enable(True)
+
+	def isBundle(self, zf):
+		with ZipFile(zf, 'r') as zfp:
+			nl = zfp.namelist()
+			
+		dmap = {}
+		for n in nl:
+			d, f = os.path.split(n)
+			if d in self.dirs:
+				dmap[d] = True
+				ext = os.path.splitext(f)[1]
+				if ext.lower() != ".ini":
+					return False
+				
+		for d in self.dirs:
+			if not d in dmap:
+				return False
+			
+		return True
+			
 	def onbRoot(self, _):
 		dlg = wx.DirDialog(self, "Choose a directory:", style=wx.DD_DEFAULT_STYLE)		
 		dlg.SetPath(self.root)
@@ -232,13 +270,16 @@ class UnBundleDlg(wx.Dialog):
 		os.chdir(self.root)
 
 		with ZipFile(self.zipfile, 'r') as zfp:
+			nl  = zfp.namelist()
 			zfp.extractall()
-				
+
 		os.chdir(cwd)
-		
-		dlg = wx.MessageDialog(self, "successfully extracted\n%s\n  to\n%s" % (self.zipfile, self.root), 'Bundle successfully extracted', wx.OK | wx.ICON_INFORMATION)
+
+		dlg = wx.MessageDialog(self, "successfully extracted %d files from\n   %s\nto\n   %s" % (len(nl), self.zipfile, self.root), 'Bundle successfully extracted', wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
+
+		self.EndModal(wx.ID_OK)
 		
 	def getNewRoot(self):
 		if self.cbNewRoot.GetValue():
@@ -247,4 +288,4 @@ class UnBundleDlg(wx.Dialog):
 			return None
 	
 	def onClose(self, _):
-		self.EndModal(wx.ID_OK)
+		self.EndModal(wx.ID_CANCEL)
