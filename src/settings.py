@@ -7,6 +7,7 @@ INIFILE = "cfgslicer.ini"
 
 class Settings:
 	def __init__(self, folder):
+		# default values
 		self.root = "C:\\Users\\jeff\\AppData\\Roaming\\PrusaSlicer"
 		self.attrFile = "attributes.json"
 				
@@ -14,8 +15,14 @@ class Settings:
 		logging.info("Loading inifile (%s)" % self.inifile)
 		
 		cfg = RawConfigParser()
-		with open(self.inifile) as stream:
-			cfg.read_string("[top]\n" + stream.read())
+		try:
+			with open(self.inifile) as stream:
+				cfg.read_string("[top]\n" + stream.read())
+				
+		except FileNotFoundError:
+			logging.error("Unable to open ini file %s for input - saving default values" % self.inifile)
+			self.save()
+			return
 
 		for opt, value in cfg.items("top"):
 			if opt == "root":
@@ -29,6 +36,7 @@ class Settings:
 		logging.debug("settings: attrfile = (%s)" % self.attrFile)
 					
 	def save(self):
+		logging.info("saving settings to %s" % self.inifile)
 		try:		
 			cfp = open(self.inifile, 'w')
 		except:
