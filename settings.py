@@ -1,6 +1,7 @@
 from configparser import RawConfigParser
 
 import os
+import sys
 import logging
 
 INIFILE = "cfgslicer.ini"
@@ -8,7 +9,10 @@ INIFILE = "cfgslicer.ini"
 class Settings:
 	def __init__(self, folder):
 		# default values
-		self.root = "C:\\Users\\jeff\\AppData\\Roaming\\PrusaSlicer"
+		if sys.platform == "linus":
+			self.root = "/home/jeff/.config/PrusaSlicer"
+		else:
+			self.root = "C:\\Users\\jeff\\AppData\\Roaming\\PrusaSlicer"
 		self.attrFile = "attributes.json"
 				
 		self.inifile = os.path.join(folder, INIFILE)
