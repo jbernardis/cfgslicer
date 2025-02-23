@@ -2,6 +2,7 @@ import wx
 import os
 from zipfile import ZipFile, is_zipfile
 
+
 class BundleDlg(wx.Dialog):
 	def __init__(self, parent, root, dirs):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Bundle Config files")
@@ -44,8 +45,7 @@ class BundleDlg(wx.Dialog):
 		hsz.AddSpacer(20)
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)
-		
-		
+
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)
 		
@@ -64,7 +64,6 @@ class BundleDlg(wx.Dialog):
 		
 		vsizer.Add(hsz)
 		vsizer.AddSpacer(20)
-		
 		
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 		sizer.AddSpacer(20)
@@ -98,14 +97,13 @@ class BundleDlg(wx.Dialog):
 
 		dlg.Destroy()
 
-		
 	def onbGo(self, _):
 		cwd = os.getcwd()
 		os.chdir(self.root)
 
 		fl = []
 		for d in self.dirs:
-			fqdir = os.path.join(self.root, d)
+			fqdir: str | bytes = os.path.join(self.root, d)
 			fl.extend([os.path.join(d, f) for f in os.listdir(fqdir) if os.path.isfile(os.path.join(fqdir, f)) and f.lower().endswith(".ini")])
 
 		fc = 0			
@@ -124,6 +122,7 @@ class BundleDlg(wx.Dialog):
 		
 	def onClose(self, _):
 		self.EndModal(wx.ID_OK)
+
 
 class UnBundleDlg(wx.Dialog):
 	def __init__(self, parent, root, dirs):
@@ -209,6 +208,7 @@ class UnBundleDlg(wx.Dialog):
 			defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
 			)
 		rc = dlg.ShowModal()
+		zf = None
 		if rc == wx.ID_OK:
 			zf = dlg.GetPath()
 		dlg.Destroy()
@@ -250,7 +250,7 @@ class UnBundleDlg(wx.Dialog):
 					return False
 				
 		for d in self.dirs:
-			if not d in dmap:
+			if d not in dmap:
 				return False
 			
 		return True

@@ -2,6 +2,7 @@ import os
 import wx
 from configparser import RawConfigParser
 
+
 class AuditReport(wx.Dialog):
 	def __init__(self, parent, cat, fn, new, missing, common):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Audit Report for file %s/\"%s\"" % (cat, fn))
@@ -14,8 +15,7 @@ class AuditReport(wx.Dialog):
 		
 		hsz = wx.BoxSizer(wx.HORIZONTAL)
 		hsz.AddSpacer(20)	
-		
-		
+
 		self.trReport = wx.TreeCtrl(self, wx.ID_ANY, size=(400, 400), style=wx.TR_HAS_BUTTONS | wx.TR_LINES_AT_ROOT | wx.TR_HIDE_ROOT | wx.TR_ROW_LINES)
 		
 		root = self.trReport.AddRoot("root")
@@ -32,7 +32,7 @@ class AuditReport(wx.Dialog):
 		for i in common:
 			self.trReport.AppendItem(cfg, i)
 			
-		#self.trReport.ExpandAll()
+		# self.trReport.ExpandAll()
 		
 		hsz.Add(self.trReport)
 				
@@ -45,6 +45,7 @@ class AuditReport(wx.Dialog):
 	
 	def onClose(self, _):
 		self.EndModal(wx.ID_OK)
+
 
 class AuditFileDlg(wx.Dialog):
 	def __init__(self, parent, root, attrMap, cats):
@@ -67,7 +68,7 @@ class AuditFileDlg(wx.Dialog):
 		st = wx.StaticText(self, wx.ID_ANY, "Category:", size=(70, -1))
 		hsz.Add(st, 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		self.chCategory = wx.Choice(self, wx.ID_ANY, choices = self.cats)
+		self.chCategory = wx.Choice(self, wx.ID_ANY, choices=self.cats)
 		self.chCategory.SetSelection(0)
 		self.currentCategory = self.cats[0]
 		self.Bind(wx.EVT_CHOICE, self.onCategory, self.chCategory)
@@ -81,8 +82,7 @@ class AuditFileDlg(wx.Dialog):
 		st = wx.StaticText(self, wx.ID_ANY, "File:", size=(70, -1))
 		hsz.Add(st, 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		
-		
+
 		self.bFile = wx.Button(self, wx.ID_ANY, "...", size=(20, -1))
 		hsz.Add(self.bFile)
 		self.Bind(wx.EVT_BUTTON, self.onbFile, self.bFile)
@@ -149,7 +149,6 @@ class AuditFileDlg(wx.Dialog):
 		
 		self.checkGoEnable()
 
-		
 	def onCategory(self, _):
 		cx = self.chCategory.GetCurrentSelection()
 		if cx != wx.NOT_FOUND:
@@ -170,7 +169,7 @@ class AuditFileDlg(wx.Dialog):
 			
 		fileKeys = sorted(fileKeys)
 		jsonAttr = self.attrMap.getCatAttrs(self.currentCategory)
-		jsonKeys = sorted([x["name"] for x in jsonAttr])
+		jsonKeys = sorted([x["name"] for x in jsonAttr if "name" in x])
 		
 		new = []
 		missing = []
@@ -185,11 +184,11 @@ class AuditFileDlg(wx.Dialog):
 		for a in fileKeys:
 			if a not in jsonKeys:
 				new.append(a)
+				print("{\"name\": \"%s\", \"label\": \"%s\", \"type\": \"hidden\"}," % (a, a.replace("_", " ")))
 						
 		dlg = AuditReport(self, self.currentCategory, os.path.basename(self.currentFile), new, missing, common)
 		dlg.ShowModal()
 		dlg.Destroy()
-					
-		
+
 	def onExit(self, _):
 		self.EndModal(wx.ID_OK)

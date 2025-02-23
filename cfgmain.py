@@ -1,21 +1,24 @@
 import wx
 import wx.propgrid as wxpg
-import os, inspect
+import os
+import inspect
 import logging
+import json
 
 logfile = "cfgslicer.log"
-loglevel = logging.INFO
+loglevel = logging.DEBUG
 
-cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
+cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 
 from settings import Settings
 from cfgslicer import CfgSlicer
+from filterdlg import FilterDlg
 from inifile import IniFileDlg
 from auditfile import AuditFileDlg
-from singlechoiceproperty import  SingleChoiceProperty
-from colorproperty import ColorProperty
-from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE, HIDDEN, BOOLEAN
+from singlechoiceproperty import SingleChoiceProperty, ChoiceToValue
+from attributemap import AttributeMap, STRINGTYPE, LONGSTRINGTYPE, COLORTYPE, HIDDEN, BOOLEAN
 from bundle import BundleDlg, UnBundleDlg
+from cfgexceptions import CfgUnknownAttribute, CfgUnknownCategory, CfgUnknownFile
 
 MENU_TOOLS = 100
 MENU_TOOLS_AUDIT = 101
@@ -26,6 +29,7 @@ MENU_TOOLS_UNBUNDLE = 104
 MENU_SETTINGS = 200
 MENU_SETTINGS_ROOT = 201
 MENU_SETTINGS_ATTRIB = 202
+
 
 class CfgMain(wx.Frame):
 	def __init__(self):
@@ -80,7 +84,8 @@ class CfgMain(wx.Frame):
 			return
 			
 		self.Destroy()
-		
+
+
 class CfgPanel(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
@@ -89,7 +94,11 @@ class CfgPanel(wx.Panel):
 		self.settings = Settings(cmdFolder) 
 		self.attrMap = AttributeMap(self.settings.attrFile)
 		self.cats = self.attrMap.getCategories()
-		
+		self.choiceTypes = self.attrMap.getChoiceTypes()
+		self.fl = None
+		self.acl = {}
+		self.extGroups = []
+
 		self.cfg = CfgSlicer(self.settings.root, self.cats, self.attrMap)
 		md = self.cfg.getMissingDirs()
 		if len(md) > 0:
@@ -119,7 +128,7 @@ class CfgPanel(wx.Panel):
 		st = wx.StaticText(self, wx.ID_ANY, "Category:")
 		hsz.Add(st, 0, wx.TOP, 4)
 		hsz.AddSpacer(10)
-		self.chCategory = wx.Choice(self, wx.ID_ANY, choices = self.cats)
+		self.chCategory = wx.Choice(self, wx.ID_ANY, choices=self.cats)
 		self.chCategory.SetSelection(0)
 		self.currentCategory = self.cats[0]
 		self.Bind(wx.EVT_CHOICE, self.onCategory, self.chCategory)
@@ -144,10 +153,15 @@ class CfgPanel(wx.Panel):
 		self.Bind(wx.EVT_BUTTON, self.onBAll, self.bAll)
 		vsz.Add(self.bAll)
 		vsz.AddSpacer(10)
-		
+
 		self.bNone = wx.Button(self, wx.ID_ANY, "None")
 		self.Bind(wx.EVT_BUTTON, self.onBNone, self.bNone)
 		vsz.Add(self.bNone)
+		vsz.AddSpacer(10)
+
+		self.bFilter = wx.Button(self, wx.ID_ANY, "Filter")
+		self.Bind(wx.EVT_BUTTON, self.onBFilter, self.bFilter)
+		vsz.Add(self.bFilter)
 		vsz.AddSpacer(30)
 		
 		self.bCopy = wx.Button(self, wx.ID_ANY, "Copy")
@@ -206,7 +220,8 @@ class CfgPanel(wx.Panel):
 		self.pg = wxpg.PropertyGrid(self, id=wx.ID_ANY, size=(1000, 300))
 		wvsz.Add(self.pg)
 		self.pg.Bind(wxpg.EVT_PG_CHANGED, self.onPropertyChange)
-		wvsz.AddSpacer(20)	
+		self.pg.SetExtraStyle(wx.propgrid.PG_EX_HELP_AS_TOOLTIPS)
+		wvsz.AddSpacer(20)
 		whsz.Add(wvsz)
 		
 		whsz.AddSpacer(20)	
@@ -250,7 +265,7 @@ class CfgPanel(wx.Panel):
 		idx = self.lbFiles.GetSelection()
 		idxl = []
 		if idx != wx.NOT_FOUND:
-			idxl  = [ idx ]
+			idxl  = [idx]
 		self.loadProperties(idxl)
 
 	def onFile(self, evt):
@@ -339,7 +354,31 @@ class CfgPanel(wx.Panel):
 			self.allowCopy(True)
 			self.allowDelete(True)
 			self.loadProperties([index])
-			
+
+	def onBFilter(self, _):
+		dlg = FilterDlg(self, self.fl, self.attrMap, self.cfg, self.currentCategory)
+		rc = dlg.ShowModal()
+		fxl = []
+		if rc == wx.ID_OK:
+			fxl = dlg.getResults()
+		dlg.Destroy()
+		if rc != wx.ID_OK:
+			return
+
+		# first uncheck everythiong
+		for i in range(len(self.fl)):
+			self.lbFiles.Check(i, False)
+
+		# now check the ones the dialog box returned
+		for fx in fxl:
+			self.lbFiles.Check(fx, True)
+
+		self.nchecked = len(fxl)
+		self.loadProperties(self.getCheckedList())
+		self.selected = None
+		self.allowCopy(False)
+		self.allowDelete(False)
+
 	def allowCopy(self, flag=True):
 		if self.propertiesChanged:
 			self.bCopy.Enable(False)
@@ -357,6 +396,7 @@ class CfgPanel(wx.Panel):
 		
 		dlg = IniFileDlg(self, cat, fl)
 		rc = dlg.ShowModal()
+		path = None
 		if rc == wx.ID_OK:
 			path = dlg.getChoice()
 
@@ -436,7 +476,7 @@ class CfgPanel(wx.Panel):
 			fn = self.lbFiles.GetString(fx)
 			al = self.cfg.getAttributes(cat, fn)
 			nx = self.cfg.getExtruderCount(fn)
-			if not nx is None:
+			if nx is not None:
 				nExt = nx
 				
 			for label in al:
@@ -480,19 +520,19 @@ class CfgPanel(wx.Panel):
 			else:
 				self.populateGroup(cat, c)
 	
-	def parseAttribute(self, v, t):
+	@staticmethod
+	def parseAttribute(v, t):
 		if t == BOOLEAN:
-			if v in [ '0', "False", "false", "nil" ]:
+			if v in ['0', "False", "false", "nil"]:
 				return 'False'
-			elif v in [ '1', "True", "true" ]:
+			elif v in ['1', "True", "true"]:
 				return 'True'
 			else:
 				logging.info("interpreting unknown value (%s) as True" % v)
 				return 'True'
-		else: # not a boolean
+		else:  # not a boolean
 			return v
 
-					
 	def populateGroup(self, cat, group, ext=None):
 		if ext is None:
 			lbl = group
@@ -503,9 +543,20 @@ class CfgPanel(wx.Panel):
 			sfx = "%d" % ext
 			
 		logging.debug("populate group (%s) (%s) (%s)" % (cat, group, lbl))
-		self.pg.Append( wxpg.PropertyCategory(lbl+":") )	
+		self.pg.Append(wxpg.PropertyCategory(lbl+":"))
+		baseColor = self.pg.GetBackgroundColour()
+		currentColor = baseColor
+		currentGroup = ""
 		grpAttrs = self.attrMap.getGroupAttrs(cat, group)
 		for attr in grpAttrs:
+			if "subgroup" in attr:
+				currentGroup = attr["subgroup"]
+				if "color" in attr:
+					currentColor = wx.Colour(attr["color"])
+				else:
+					currentColor = baseColor
+				continue
+
 			name = attr["name"]
 			label = attr["label"]
 			atype = attr["type"]
@@ -516,47 +567,70 @@ class CfgPanel(wx.Panel):
 				logging.debug("Attribute (%s) missing" % name)
 				al = [""]
 
-			if atype != HIDDEN:					
+			if atype != HIDDEN:
 				nm = name+sfx
+				helpString = "%s/%s" % (currentGroup, nm)
 				if len(al) > 1:
 					al = ["<keep>"] + al
 					al = [[x, x] for x in al]
-					self.pg.Append(SingleChoiceProperty(label, nm, al[0][1], al, "%s (%s)" % (label, name), "Choose value to use"))
+					p = SingleChoiceProperty(label, nm, al[0][1], al, "%s (%s)" % (label, name), "Choose value to use")
+					self.pg.Append(p)
+					self.pg.SetPropertyBackgroundColour(p, currentColor)
+					self.pg.SetPropertyHelpString(p, helpString)
 				else:
 					val = al[0]
-					if not ext is None:
+					if ext is not None:
 						val = val[ext-1]
 						
 					if atype == COLORTYPE:
-						p = ColorProperty(label, nm, value=val)
+						try:
+							v1 = int(val[1:3], 16)
+							v2 = int(val[3:5], 16)
+							v3 = int(val[5:], 16)
+							val = (v1, v2, v3, 255)
+						except ValueError:
+							val = (255, 255, 255, 255)
+
+						p = wxpg.ColourProperty(label, nm, value=val)
 						self.pg.Append(p)
+						self.pg.SetPropertyBackgroundColour(p, currentColor)
+						self.pg.SetPropertyHelpString(p, helpString)
 						self.pg.LimitPropertyEditing(p, True)
 						
-					elif atype in [ INFILLTYPE, SHELLINFILLTYPE, SUPPORTINFILLTYPE, IRONINGTYPE, SEAMPOSTYPE, LIMITSUSAGE ]:
+					elif atype in self.choiceTypes:
 						l = self.attrMap.getChoices(atype)
 						p = SingleChoiceProperty(label, nm, val, l, "%s (%s)" % (label, name), "Choose value to use")
 						self.pg.Append(p)
+						self.pg.SetPropertyBackgroundColour(p, currentColor)
 						self.pg.LimitPropertyEditing(p, True)
-						
+						self.pg.SetPropertyHelpString(p, helpString)
+
 					elif atype == STRINGTYPE:
-						self.pg.Append(wxpg.StringProperty(label, nm, value=val) )
-					
+						p = wxpg.StringProperty(label, nm, value=val)
+						self.pg.Append(p)
+						self.pg.SetPropertyBackgroundColour(p, currentColor)
+						self.pg.SetPropertyHelpString(p, helpString)
+
 					elif atype == LONGSTRINGTYPE:
 						p = wxpg.LongStringProperty(label, nm, value=val)
 						self.pg.Append(p)
+						self.pg.SetPropertyBackgroundColour(p, currentColor)
 						self.pg.LimitPropertyEditing(p, True)
-					
+						self.pg.SetPropertyHelpString(p, helpString)
+
 					elif atype == BOOLEAN:
 						p = wxpg.BoolProperty(label, nm, value=(val != 'False'))
 						self.pg.Append(p)
+						self.pg.SetPropertyBackgroundColour(p, currentColor)
 						self.pg.LimitPropertyEditing(p, True)
-													
+						self.pg.SetPropertyHelpString(p, helpString)
+
 					else:
 						logging.error("invalid type for field %s: %s" % (name, atype))
 
-	def onPropertyChange(self, evt):
+	def onPropertyChange(self, _):
 		self.enablePendingChanges(True)
-		
+
 	def enablePendingChanges(self, flag=True):
 		self.propertiesChanged = flag
 		self.bSave.Enable(flag)
@@ -583,21 +657,24 @@ class CfgPanel(wx.Panel):
 		pgl = {}
 		while not it.AtEnd():
 			p = it.GetProperty()
-			pgl[p.GetName()] =  p.GetValue()
+			pgl[p.GetName()] = p.GetValue()
 			it.Next()
 			
 		cat = self.currentCategory
 		if self.nchecked == 0:
-			idxl = [ self.lbFiles.GetSelection() ]
+			idxl = [self.lbFiles.GetSelection()]
 		else:
 			idxl = self.getCheckedList()
 	
-		logging.debug("saving attributes")		
+		logging.debug("saving attributes")
+		skipped = {}
 		for fx in idxl:
 			fn = self.lbFiles.GetString(fx)
+			logging.debug("for file %s" % fn)
 
 			clist = self.attrMap.getGroups(cat)
 			logging.debug("groups: (%s)" % (str(clist)))
+			fskipped = []
 			for c in clist:
 				if self.attrMap.isExtruderCategory(cat) and self.attrMap.isExtruderGroup(cat, c):
 					logging.debug("extruder group: %s:%s" % (cat, c))
@@ -605,29 +682,75 @@ class CfgPanel(wx.Panel):
 				else:
 					extGrpCount = 0
 					logging.debug("NOT extruder group: %s:%s" % (cat, c))
-				grpAttrs = self.attrMap.getGroupAttrs(cat, c)
+				grpAttrs = [a for a in self.attrMap.getGroupAttrs(cat, c) if "subgroup" not in a]
 				for attr in grpAttrs:
+
 					name = attr["name"]
 					if attr["type"] != HIDDEN:
+						skip = False
 						logging.debug("attr name: *%s)" % name)
 						try:
 							oldv = self.cfg.getAttribute(cat, fn, name)
-						except:
+						except (CfgUnknownCategory, CfgUnknownFile):
 							oldv = None
+						except CfgUnknownAttribute:
+							oldv = None
+							skip = True
 							
-						newv = self.getNewValue(name, attr, pgl, extGrpCount)
+						if skip:
+							fskipped.append("%s:%s" % (c, name))
+						else:
+							newv = self.getNewValue(name, attr, pgl, extGrpCount)
+							if attr["type"] in self.choiceTypes:
+								choices = self.attrMap.getChoices(attr["type"])
+								v = ChoiceToValue(newv, choices)
+								newv = v
 
-						logging.debug("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
-						if oldv is None or (newv != "<keep>" and newv != oldv):
-							self.cfg.setAttribute(cat, fn, name, newv)
-							logging.debug("updated attributes")
+							logging.debug("%s: oldval (%s) newval(%s)" % (name, oldv, newv))
+							if oldv is None or (newv != "<keep>" and newv != oldv):
+								self.cfg.setAttribute(cat, fn, name, newv)
+								logging.debug("updated attributes")
 					else:
 						logging.debug("hidden attribute: %s" % name)
-	
-		self.cfg.writeModified()				
+
+			if len(fskipped) > 0:
+				skipped[fn] = fskipped
+
+		if len(skipped) > 0:
+			for fn in skipped:
+				buf = ["%s:" % fn]
+				for a in skipped[fn]:
+					buf.append("    %s" % a)
+				buf.append("")
+
+				bufstr = "\n".join(buf)
+				logging.debug("Attributes from map not saved because they did not appear in the ini file:")
+				for b in buf:
+					logging.debug(b)
+				logging.debug("********************************************")
+
+				dlg = wx.MessageDialog(self,
+					"Attrubutes in map but not in ini file - skipping:\n" + bufstr,
+					"Attributes skipped",
+					wx.OK | wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+
+		fl = self.cfg.writeModified()
 		self.enablePendingChanges(False)
 
-	def getNewValue(self, name, attr, pgl, extGrpCount):
+		if len(fl) == 0:
+			dlg = wx.MessageDialog(self, "No files were saved", "No Files Saved", wx.OK | wx.ICON_INFORMATION)
+		elif len(fl) == 1:
+			dlg = wx.MessageDialog(self, "The following file was saved:\n%s" % fl[0], "File Saved",	wx.OK | wx.ICON_INFORMATION)
+		else:
+			dlg = wx.MessageDialog(self, "The following files were saved:\n%s" % "\n".join(fl), "Files Saved", wx.OK | wx.ICON_INFORMATION)
+
+		dlg.ShowModal()
+		dlg.Destroy()
+
+	@staticmethod
+	def getNewValue(name, attr, pgl, extGrpCount):
 		results = []
 		nms = []
 		if extGrpCount > 0:
@@ -639,7 +762,9 @@ class CfgPanel(wx.Panel):
 		logging.debug("getnewvalue: names list = %s" % str(nms))
 			
 		for nm in nms:
-			if attr["type"] == BOOLEAN:
+			if pgl[nm] == "<keep>":
+				newv = "<keep>"  # keep existing value
+			elif attr["type"] == BOOLEAN:
 				if pgl[nm] == 'True':
 					logging.debug("string true for %s" % nm)
 					newv = '1'
@@ -649,6 +774,12 @@ class CfgPanel(wx.Panel):
 				else:
 					logging.debug("true boolean value for %s" % nm)
 					newv = '1' if pgl[nm] else '0'
+			elif attr["type"] == COLORTYPE:
+				hx = []
+				print("try to convert %s to hex" % str(pgl[nm]), flush=True)
+				for i in range(3):
+					hx.append("%02X" % pgl[nm][i])
+				newv = "".join(hx)
 			else:
 				newv = pgl[nm]
 				
@@ -664,7 +795,7 @@ class CfgPanel(wx.Panel):
 		
 		self.enablePendingChanges(False)
 		if self.nchecked == 0:
-			idxl = [ self.lbFiles.GetSelection() ]
+			idxl = [self.lbFiles.GetSelection()]
 		else:
 			idxl = self.getCheckedList()
 			
@@ -705,6 +836,7 @@ class CfgPanel(wx.Panel):
 	def onUnbundle(self, _):
 		dlg = UnBundleDlg(self, self.settings.root, self.cats)
 		rc = dlg.ShowModal()
+		nr = None
 		if rc == wx.ID_OK:
 			nr = dlg.getNewRoot()
 			
@@ -729,6 +861,7 @@ class CfgPanel(wx.Panel):
 		dlg = wx.DirDialog(self, "Choose a Slicer configuration directory:", style=wx.DD_DEFAULT_STYLE)		
 		dlg.SetPath(self.settings.root)
 		rc = dlg.ShowModal()
+		newroot = None
 		if rc == wx.ID_OK:
 			newroot = dlg.GetPath()
 
@@ -808,6 +941,7 @@ class CfgPanel(wx.Panel):
 		dlg.Destroy()
 
 		return rc == wx.ID_YES
+
 
 if __name__ == '__main__':
 	app = wx.App()

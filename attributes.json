@@ -6,79 +6,137 @@
 	{
 		"groups" : [ "Filament", "Cooling", "Advanced", "Overrides", "Custom G-code", "Notes", "Dependencies" ],
 		"Filament" : [ 
+			{ "subgroup":  "Filament", "color":  [225, 255, 240]},
 			{ "name": "filament_colour", "label": "color", "type": "color" },
 			{ "name": "filament_diameter", "label": "diameter" },
 			{ "name": "extrusion_multiplier", "label": "extrusion multiplier" },
 			{ "name": "filament_density", "label": "density" },
 			{ "name": "filament_cost", "label": "cost" },
 		    { "name": "filament_spool_weight", "label": "spool weight" },
+
+			{ "subgroup":  "Temperature", "color":  [138, 255, 197]},
 		    { "name": "first_layer_temperature", "label": "first layer temperature" },
 		    { "name": "temperature" },
 		    { "name": "first_layer_bed_temperature", "label": "first layer bed temperature" },
-		    { "name": "bed_temperature", "label": "bed temperature" }
+		    { "name": "bed_temperature", "label": "bed temperature" },
+			{ "name":  "chamber_temperature", "label": "chamber nominal temp"},
+			{ "name":  "chamber_minimal_temperature", "label": "chamber minimal temp"},
+			{ "name":  "idle_temperature", "label": "idle temperature"}
 	   	],
 		
 		"Cooling" : [
+			{ "subgroup":  "Enable", "color":  [225, 255, 240]},
 			{ "name": "fan_always_on", "label": "fan always on", "type": "boolean" },
 			{ "name": "cooling", "type": "boolean" },
+
+			{ "subgroup":  "Fan Settings", "color":  [138, 255, 197]},
 			{ "name": "min_fan_speed", "label": "mimimum fan speed" },
 			{ "name": "max_fan_speed", "label": "maximum fan speed" },
 			{ "name": "bridge_fan_speed", "label": "bridge fan speed" },
 			{ "name": "disable_fan_first_layers", "label": "disable fan first layers" },
 			{ "name": "full_fan_speed_layer", "label": "full fan speed layer" },
+
+			{ "subgroup":  "Dynamic fan speeds", "color":  [225, 255, 240]},
+			{ "name": "enable_dynamic_fan_speeds", "label": "enable dynamic fan speeds", "type": "boolean"},
+			{ "name": "overhang_fan_speed_0", "label": "speed for 0% overlap (bridge)"},
+			{ "name": "overhang_fan_speed_1", "label": "speed for 25% overlap"},
+			{ "name": "overhang_fan_speed_2", "label": "speed for 50% overlap"},
+			{ "name": "overhang_fan_speed_3", "label": "speed for 75% overlap"},
+
+			{ "subgroup":  "Cooling thresholds", "color":  [138, 255, 197]},
 			{ "name": "fan_below_layer_time",  "label": "fan below layer time" },
 			{ "name": "slowdown_below_layer_time", "label": "slowdown delow layer time" },
 			{ "name": "min_print_speed", "label": "minimim print speed" }
 		],
 
 		"Advanced" : [
-			{ "name": "filament_type", "label": "filament type" },
-			{ "name": "filament_soluble", "label": "soluble", "type": "boolean" },
-			{ "name": "filament_vendor", "label": "vendor" },
+			{ "subgroup":  "Filament properties", "color":  [225, 255, 240]},
+			{ "name": "filament_type", "label": "filament type", "type": "filamenttype" },
+			{ "name": "filament_soluble", "label": "soluble material", "type": "boolean" },
+			{ "name": "filament_abrasive", "label": "abrasive material", "type": "boolean" },
+
+			{ "subgroup":  "Print speed override", "color":  [138, 255, 197]},
 			{ "name": "filament_max_volumetric_speed", "label": "maximum volumetric speed" },
+			{ "name": "filament_infill_max_speed", "label": "maximum non-crossing infill speed" },
+			{ "name": "filament_infill_max_crossing_speed", "label": "maximum crossing infill speed" },
+
+			{ "subgroup":  "Shrinkage compensation", "color":  [225, 255, 240]},
+			{ "name": "filament_shrinkage_compensation_xy", "label": "shrinkage compensation XY" },
+			{ "name": "filament_shrinkage_compensation_z", "label": "shrinkage compensation Z" },
+
+			{ "subgroup":  "Wipe tower parameters", "color":  [138, 255, 197]},
 			{ "name": "filament_minimal_purge_on_wipe_tower", "label": "minimal purge on wipe tower" },
-			{ "name": "filament_loading_speed_start", "label": "loading speed start" },
+
+			{ "subgroup":  "Toolchange parameters single extruder MM", "color":  [225, 255, 240]},
+			{ "name": "filament_loading_speed_start", "label": "loading speed at start" },
 			{ "name": "filament_loading_speed", "label": "loading speed" },
-			{ "name": "filament_unloading_speed_start", "label": "unloading speed start" },
+			{ "name": "filament_unloading_speed_start", "label": "unloading speed at start" },
 			{ "name": "filament_unloading_speed", "label": "unloading speed" },
 			{ "name": "filament_load_time", "label": "load time" },
 			{ "name": "filament_unload_time", "label": "unload time" },
-			{ "name": "filament_toolchange_delay", "label": "toolchange delay" },
+			{ "name": "filament_toolchange_delay", "label": "delay after unloading" },
 			{ "name": "filament_cooling_moves", "label": "cooling moves" },
-			{ "name": "filament_cooling_initial_speed", "label": "cooling initial speed" },
-			{ "name": "filament_cooling_final_speed", "label": "cooling final speed" },
-			{ "name": "filament_ramming_parameters", "label": "ramming parameters" },
-			{ "name": "filament_settings_id", "label": "settings id", "type": "hidden" },
-			{ "name": "inherits", "label": "inherits", "type": "hidden" }
+			{ "name": "filament_cooling_initial_speed", "label": "cooling first move speed" },
+			{ "name": "filament_cooling_final_speed", "label": "cooling final move speed" },
+			{ "name": "filament_stamping_loading_speed", "label": "stamping loading speed" },
+			{ "name": "filament_stamping_distance", "label": "stamping distant" },
+			{ "name": "filament_purge_multiplier", "label": "purge volume multiplier" },
+			{ "name": "filament_ramming_parameters", "label": "ramming parameters", "type": "hidden" },
+
+			{ "subgroup":  "Toolchange parameters multi extruder MM", "color":  [138, 255, 197]},
+			{ "name": "filament_multitool_ramming", "label": "enable multitool ramming", "type": "boolean" },
+			{ "name": "filament_multitool_ramming_volume", "label": "multitool ramming volume" },
+			{ "name": "filament_multitool_ramming_flow", "label": "multitool ramming flow" },
+
+			{ "name": "filament_vendor", "label": "", "type": "hidden"},
+			{ "name": "filament_settings_id", "label": "", "type": "hidden"},
+			{ "name": "inherits", "label": "", "type": "hidden"}
 		],
 
 		"Overrides" : [
-			{ "name": "filament_retract_length", "label": "retract length" },
+			{ "subgroup":  "Travel lift", "color":  [225, 255, 240]},
 			{ "name": "filament_retract_lift", "label": "retract lift" },
+			{ "name": "filament_travel_ramping_lift", "label": "use ramping lift", "type": "boolean" },
+			{ "name": "filament_travel_max_lift", "label": "maximum ramping lift" },
+			{ "name": "filament_travel_slope", "label": "ramping slope angle" },
+			{ "name": "filament_travel_lift_before_obstacle", "label": "steeper ramp before obstacles", "type": "boolean" },
 			{ "name": "filament_retract_lift_above", "label": "retract lift above" },
 			{ "name": "filament_retract_lift_below", "label": "retract lift below" },
+
+			{ "subgroup":  "Retraction", "color":  [138, 255, 197]},
+			{ "name": "filament_retract_length", "label": "retract length" },
 			{ "name": "filament_retract_speed", "label": "retract speed" },
 			{ "name": "filament_deretract_speed", "label": "deretract speed" },
-			{ "name": "filament_retract_restart_extra", "label": "retract restart extra" },
-			{ "name": "filament_retract_before_travel", "label": "retract before travel" },
-			{ "name": "filament_retract_layer_change", "label": "retract layer change", "type": "boolean" },
-			{ "name": "filament_retract_before_wipe", "label": "retract before wipe" },
-			{ "name": "filament_wipe", "label": "wipe", "type": "boolean" }
+			{ "name": "filament_retract_restart_extra", "label": "deretract extra length" },
+			{ "name": "filament_retract_before_travel", "label": "minimum travel after retract" },
+			{ "name": "filament_retract_layer_change", "label": "retract on layer change", "type": "boolean" },
+			{ "name": "filament_wipe", "label": "wipe while retracting", "type": "boolean" },
+			{ "name": "filament_retract_before_wipe", "label": "retract amount before wipe" },
+
+			{ "subgroup":  "Retraction when tool is disabled", "color":  [225, 255, 240]},
+			{ "name": "filament_retract_length_toolchange", "label": "toolchange retract length" },
+			{ "name": "filament_retract_restart_extra_toolchange", "label": "extra change on restart" },
+
+			{ "subgroup":  "Seams", "color":  [138, 255, 197]},
+			{ "name": "filament_seam_gap_distance", "label": "seam_gap_distance" }
 		],
 
 		"Custom G-code" : [
+			{ "subgroup":  "Custom G-Code", "color":  [225, 255, 240]},
 			{ "name": "start_filament_gcode", "label": "start", "type": "longstring" },
 			{ "name": "end_filament_gcode", "label": "end", "type": "longstring" }
 		],
 
 		"Notes" : [ 
+			{ "subgroup":  "Notes", "color":  [225, 255, 240]},
 			{ "name": "filament_notes", "label": "notes", "type": "longstring" }
 	   	],
 
 		"Dependencies" : [
-			{ "name": "compatible_printers", "label": "compatible printers" },
+			{ "subgroup":  "Dependencies", "color":  [225, 255, 240]},
+			{ "name": "compatible_printers", "label": "compatible printers", "type": "hidden" },
 			{ "name": "compatible_printers_condition", "label": "compatible printers condition" },
-			{ "name": "compatible_prints", "label": "compatible prints" },
+			{ "name": "compatible_prints", "label": "compatible prints", "type": "hidden" },
 			{ "name": "compatible_prints_condition", "label": "compatible prints condition" }
 		]
 	},
@@ -88,75 +146,145 @@
 		"groups": [ "Layers and perimeters", "Infill", "Skirt and Brim", "Support", "Speed", "Mulltiple Extruders", "Advanced", "Output options", "Notes", "Dependencies" ],
 
 		"Layers and perimeters" : [
+			{ "subgroup":  "Layer Height", "color":  [225, 255, 240]},
 			{ "name": "layer_height", "label": "layer height" },
 			{ "name": "first_layer_height", "label": "layer height first layer" },
+
+			{ "subgroup":  "Vertical Shells", "color":  [138, 255, 197]},
 			{ "name": "perimeters", "label": "perimeters" },
 			{ "name": "spiral_vase", "label": "spiral vase", "type": "boolean" },
+
+			{ "subgroup": "Horizontal Shells", "color":  [225, 255, 240]},
 			{ "name": "top_solid_layers", "label": "top colid layers" },
-			{ "name": "bottom_solid_layers", "label": "bottom solod layers" },
+			{ "name": "bottom_solid_layers", "label": "bottom solid layers" },
 			{ "name": "top_solid_min_thickness", "label": "top solid minimum thickness" },
 			{ "name": "bottom_solid_min_thickness", "label": "bottom solid minimum thickness" },
-			{ "name": "extra_perimeters", "label": "extra perimeters", "type": "boolean" },
-			{ "name": "ensure_vertical_shell_thickness", "label": "ensure vertical shell thickness", "type": "boolean" },
+
+			{ "subgroup":  "Quality", "color":  [138, 255, 197]},
+			{ "name": "extra_perimeters", "label": "extra perimeters if needed", "type": "boolean" },
+			{ "name": "extra_perimeters_on_overhangs", "label": "extra perimeters on overhangs"},
+			{ "name": "ensure_vertical_shell_thickness", "label": "ensure vertical shell thickness", "type": "ensureverticalshell" },
+			{ "name": "avoid_crossing_curled_overhangs", "label": "avoid crossing curled overhangs", "type": "boolean"},
 			{ "name": "avoid_crossing_perimeters", "label": "avoid crossing perimeters", "type": "boolean" },
-			{ "name": "avoid_crossing_perimeters_max_detour", "label": "max detour" },
-			{ "name": "thin_walls", "label": "thin walls", "type": "boolean" },
+			{ "name": "avoid_crossing_perimeters_max_detour", "label": "max detour length" },
+			{ "name": "thin_walls", "label": "detect thin walls", "type": "boolean" },
+			{ "name": "thick_bridges", "label": "thick bridges", "type": "boolean"},
 			{ "name": "overhangs",  "label": "detect bridge perimeters", "type": "boolean" },
+
+			{ "subgroup":  "Advanced", "color":  [225, 255, 240]},
 			{ "name": "seam_position", "label": "seam position", "type": "seamposition" },
-			{ "name": "external_perimeters_first", "label": "external perimeters first", "type": "boolean" }
+			{ "name": "seam_gap_distance", "label": "seam gap distance"},
+			{ "name": "staggered_inner_seams", "label": "staggered inner seams", "type": "boolean"},
+			{ "name": "scarf_seam_placement", "label": "scarf joint placement", "type": "scarfplacement"},
+			{ "name": "scarf_seam_only_on_smooth", "label": "scarf joint only on smooth", "type": "boolean"},
+			{ "name": "scarf_seam_start_height", "label": "scarf start height"},
+			{ "name": "scarf_seam_entire_loop", "label": "scarf joint entire loop", "type": "boolean"},
+			{ "name": "scarf_seam_length", "label": "scarf joint length"},
+			{ "name": "scarf_seam_max_segment_length", "label": "max scarf joint segment length"},
+			{ "name": "scarf_seam_on_inner_perimeters", "label": "scarf joint on inner perimeters", "type": "boolean"},
+			{ "name": "external_perimeters_first", "label": "external perimeters first", "type": "boolean" },
+			{ "name": "gap_fill_enabled", "label": "fill gaps", "type": "boolean"},
+			{ "name": "perimeter_generator", "label": "perimeter generator", "type": "perimetergenerator"},
+
+			{ "subgroup":  "Fuzzy Skin", "color":  [138, 255, 197]},
+			{ "name": "fuzzy_skin", "label": "fuzzy skin", "type": "fuzzyskin"},
+			{ "name": "fuzzy_skin_thickness", "label": "fuzzy skin thickness"},
+			{ "name": "fuzzy_skin_point_dist", "label": "fuzzy skin point distance"},
+
+			{ "subgroup":  "Only One Perimeter", "color":  [225, 255, 240]},
+			{ "name": "top_one_perimeter_type", "label": "single perimeter on top surfaces", "type": "topperimetertype"},
+			{ "name": "only_one_perimeter_first_layer", "label": "only one perimeter on first layer", "type": "boolean"}
 		],
 
 		"Infill" : [
+			{ "subgroup":  "Infill", "color":  [225, 255, 240]},
 			{ "name": "fill_density", "label": "density" },
 			{ "name": "fill_pattern", "label": "pattern", "type": "infill" },
 			{ "name": "infill_anchor", "label": "infill anchor" },
 			{ "name": "infill_anchor_max", "label": "infill anchor maximum" },
 			{ "name": "top_fill_pattern", "label": "top fill pattern", "type": "shellinfill" },
 			{ "name": "bottom_fill_pattern", "label": "bottom fill pattern", "type": "shellinfill" },
-			{ "name": "ironing", "label": "ironing", "type": "boolean" },
+
+			{ "subgroup":  "Ironing", "color":  [138, 255, 197]},
+			{ "name": "ironing", "label": "enable ironing", "type": "boolean" },
 			{ "name": "ironing_type", "label": "ironing type", "type": "ironing" },
-			{ "name": "ironing_flowrate", "label": "ironing flowrate" },
-			{ "name": "ironing_spacing", "label": "ironing spacing" },
+			{ "name": "ironing_flowrate", "label": "flow rate" },
+			{ "name": "ironing_spacing", "label": "spacing between ironing passes" },
+
+			{ "subgroup":  "Reducing printing time", "color":  [225, 255, 240]},
+			{ "name": "automatic_infill_combination", "label": "automatic infill combination", "type": "boolean"},
+			{ "name": "automatic_infill_combination_max_layer_height", "label": "max layer height"},
 			{ "name": "infill_every_layers", "label": "infill every layers" },
-			{ "name": "infill_only_where_needed", "label": "infill only where needed", "type": "boolean" },
-			{ "name": "solid_infill_every_layers", "label": "solid infill every layers" },
+
+			{ "subgroup":  "Advanced", "color":  [138, 255, 197]},
+			{ "name": "solid_infill_every_layers", "label": "solid infill every" },
 			{ "name": "fill_angle", "label": "fill angle" },
-			{ "name": "solid_infill_below_area", "label": "solid infill below area" },
+			{ "name": "solid_infill_below_area", "label": "solid infill threshold area" },
 			{ "name": "bridge_angle", "label": "bridge angle" },
 			{ "name": "only_retract_when_crossing_perimeters", "label": "only retract when crossing perimeters", "type": "boolean" },
-			{ "name": "infill_first", "label": "infill first", "type": "boolean" }
+			{ "name": "infill_first", "label": "infill before perimeters", "type": "boolean" }
 		],
 
 		"Skirt and Brim" : [
-			{ "name": "skirts", "label": "skirt" },
-			{ "name": "skirt_distance", "label": "distance" },
+			{ "subgroup":  "Skirt", "color":  [225, 255, 240]},
+			{ "name": "skirts", "label": "skirt loops" },
+			{ "name": "skirt_distance", "label": "distance from brim/object" },
 			{ "name": "skirt_height", "label": "height" },
-			{ "name": "draft_shield", "label": "draft shield", "type": "boolean" },
-			{ "name": "min_skirt_length", "label": "minimum length" },
-			{ "name": "brim_width", "label": "brim width" }
+			{ "name": "draft_shield", "label": "draft shield", "type": "draftshield" },
+			{ "name": "min_skirt_length", "label": "minimum filament extrusion length" },
+
+			{ "subgroup":  "Brim", "color":  [138, 255, 197]},
+			{ "name": "brim_type", "label": "brim type", "type": "brimtype"},
+			{ "name": "brim_width", "label": "brim width" },
+			{ "name": "brim_separation", "label": "brim separation"}
 		],
 
 		"Support": [
-			{ "name": "support_material", "label": "material", "type": "boolean" },
-			{ "name": "support_material_auto", "label": "automatic", "type": "boolean" },
-			{ "name": "support_material_threshold", "label": "threshold" },
-			{ "name": "support_material_enforce_layers", "label": "enforce layers" },
+			{ "subgroup":  "Support material", "color":  [225, 255, 240]},
+			{ "name": "support_material", "label": "generate support material", "type": "boolean" },
+			{ "name": "support_material_auto", "label": "auto generated supports", "type": "boolean" },
+			{ "name": "support_material_threshold", "label": "overhang threshold" },
+			{ "name": "support_material_enforce_layers", "label": "enforce support for the first layers" },
+			{ "name": "raft_first_layer_density", "label": "first layer density"},
+			{ "name": "raft_first_layer_expansion", "label": "first layer expansion"},
+
+			{ "subgroup":  "Raft", "color":  [138, 255, 197]},
 			{ "name": "raft_layers", "label": "raft layers" },
-			{ "name": "support_material_contact_distance", "label": "contact distance" },
+			{ "name": "raft_contact_distance", "label": "raft contact Z distance"},
+			{ "name": "raft_expansion", "label": "raft expansion"},
+
+			{ "subgroup":  "Options for support material and raft", "color":  [225, 255, 240]},
+			{ "name": "support_material_style", "label": "style", "type": "supportstyle"},
+			{ "name": "support_material_contact_distance", "label": "top contact Z distance", "type": "topcontactz" },
+			{ "name": "support_material_bottom_contact_distance", "label": "bottom contact Z distance", "type": "bottomcontactz"},
 			{ "name": "support_material_pattern", "label": "pattern", "type": "supportinfill" },
 			{ "name": "support_material_with_sheath", "label": "with sheath", "type": "boolean" },
 			{ "name": "support_material_spacing", "label": "spacing" },
 			{ "name": "support_material_angle", "label": "angle" },
-			{ "name": "support_material_interface_layers", "label": "interface layers" },
-			{ "name": "support_material_interface_spacing", "label": "interface spacing" },
-			{ "name": "support_material_interface_contact_loops", "label": "interface contact loops", "type": "boolean" },
-			{ "name": "support_material_buildplate_only", "label": "buildplate only", "type": "boolean" },
+			{ "name": "support_material_closing_radius", "label": "closing radius"},
+			{ "name": "support_material_interface_layers", "label": "top interface layers", "type": "topinterfacelayers" },
+			{ "name": "support_material_bottom_interface_layers", "label": "bottom interface layers", "type": "bottominterfacelayers"},
+			{ "name": "support_material_interface_pattern", "label": "interface pattern", "type": "supportintinfill"},
+			{ "name": "support_material_interface_spacing", "label": "interface pattern spacing" },
+			{ "name": "support_material_interface_contact_loops", "label": "interface loops", "type": "boolean" },
+			{ "name": "support_material_buildplate_only", "label": "support on buildplate only", "type": "boolean" },
 			{ "name": "support_material_xy_spacing", "label": "XY spacing" },
 			{ "name": "dont_support_bridges", "label": "don't support bridges", "type": "boolean" },
-			{ "name": "support_material_synchronize_layers", "label": "synchronize layers", "type": "boolean" }
+			{ "name": "support_material_synchronize_layers", "label": "synchronize with object layers", "type": "boolean" },
+
+			{ "subgroup":  "Organic supports", "color":  [138, 255, 197]},
+			{ "name": "support_tree_angle", "label": "Maximum branch angle"},
+			{ "name": "support_tree_angle_slow", "label": "Preferred branch angle"},
+			{ "name": "support_tree_branch_diameter", "label": "Branch diameter"},
+			{ "name": "support_tree_branch_diameter_angle", "label": "Branch diameter angle"},
+			{ "name": "support_tree_branch_diameter_double_wall", "label": "Branch diameter with double walls"},
+			{ "name": "support_tree_tip_diameter", "label": "Tip diameter"},
+			{ "name": "support_tree_branch_distance", "label": "Branch distance"},
+			{ "name": "support_tree_top_rate", "label": "Branch density"}
 		],
 
 		"Speed" : [
+			{ "subgroup":  "Speed for print moves", "color":  [225, 255, 240]},
 			{ "name": "perimeter_speed", "label": "perimeter" },
 			{ "name": "small_perimeter_speed", "label": "small perimeter" },
 			{ "name": "external_perimeter_speed", "label": "external perimeter" },
@@ -165,75 +293,142 @@
 			{ "name": "top_solid_infill_speed", "label": "top solid infill" },
 			{ "name": "support_material_speed", "label": "support material" },
 			{ "name": "support_material_interface_speed", "label": "support material interface" },
-			{ "name": "bridge_speed", "label": "bridge" },
+			{ "name": "bridge_speed", "label": "bridges" },
 			{ "name": "gap_fill_speed", "label": "gap fill" },
 			{ "name": "ironing_speed", "label": "ironing" },
+
+			{ "subgroup":  "Dynamic overhang speed", "color":  [138, 255, 197]},
+			{ "name": "enable_dynamic_overhang_speeds", "label": "enable dynamic overhang speeds", "type": "boolean"},
+			{ "name": "overhang_speed_0", "label": "speed for 0% overlap (bridge)"},
+			{ "name": "overhang_speed_1", "label": "speed for 25% overlap"},
+			{ "name": "overhang_speed_2", "label": "speed for 50% overlap"},
+			{ "name": "overhang_speed_3", "label": "speed for 75% overlap"},
+
+			{ "subgroup":  "Speed for non-print moves", "color":  [225, 255, 240]},
 			{ "name": "travel_speed", "label": "travel" },
+			{ "name": "travel_speed_z", "label": "travel speed z"},
+
+			{ "subgroup":  "Modifiers", "color":  [138, 255, 197]},
 			{ "name": "first_layer_speed", "label": "first layer" },
-			{ "name": "perimeter_acceleration", "label": "perimeter acceleration" },
-			{ "name": "infill_acceleration", "label": "infill acceleration" },
-			{ "name": "bridge_acceleration", "label": "bridge acceleration" },
-			{ "name": "first_layer_acceleration", "label": "first layer acceleration" },
-			{ "name": "default_acceleration", "label": "default acceleration" },
+			{ "name": "first_layer_speed_over_raft", "label": "first layer speed over raft"},
+
+			{ "subgroup":  "Acceleration control", "color":  [225, 255, 240]},
+			{ "name": "external_perimeter_acceleration", "label": "external perimeter"},
+			{ "name": "perimeter_acceleration", "label": "perimeter" },
+			{ "name": "top_solid_infill_acceleration", "label": "top solid infill"},
+			{ "name": "solid_infill_acceleration", "label": "solid infill"},
+			{ "name": "infill_acceleration", "label": "infill" },
+			{ "name": "bridge_acceleration", "label": "bridge" },
+			{ "name": "first_layer_acceleration", "label": "first layer" },
+			{ "name": "first_layer_acceleration_over_raft", "label": "first layer over raft"},
+			{ "name": "wipe_tower_acceleration", "label": "wipe tower"},
+			{ "name": "travel_acceleration", "label": "travel"},
+			{ "name": "default_acceleration", "label": "default" },
+
+			{ "subgroup":  "Auto speed", "color":  [138, 255, 197]},
 			{ "name": "max_print_speed", "label": "maximum print speed" },
-			{ "name": "max_volumetric_speed", "label": "maximum volumetric speed" }
+			{ "name": "max_volumetric_speed", "label": "maximum volumetric speed" },
+
+			{ "subgroup":  "Pressure Equalizer", "color":  [225, 255, 240]},
+			{ "name": "max_volumetric_extrusion_rate_slope_negative", "label": "max volumetric slope negative"},
+			{ "name": "max_volumetric_extrusion_rate_slope_positive", "label": "max volumetric slope positive"}
 		],
 
 		"Mulltiple Extruders": [
+			{ "subgroup":  "Extruders", "color":  [225, 255, 240]},
 			{ "name": "perimeter_extruder", "label": "perimeter" },
 			{ "name": "infill_extruder", "label": "infill" },
 			{ "name": "solid_infill_extruder", "label": "solid infill" },
 			{ "name": "support_material_extruder", "label": "support material" },
 			{ "name": "support_material_interface_extruder", "label": "support material interface" },
+			{ "name": "wipe_tower_extruder", "label": "wipe tower extruder"},
+
+			{ "subgroup":  "ooze prevention", "color":  [138, 255, 197]},
 			{ "name": "ooze_prevention", "label": "ooze prevention", "type": "boolean" },
 			{ "name": "standby_temperature_delta", "label": "standby temperature delta" },
-			{ "name": "wipe_tower", "label": "wipe tower", "type": "boolean" },
-			{ "name": "wipe_tower_x", "label": "wipe tower X" },
-			{ "name": "wipe_tower_y", "label": "wipe tower Y" },
-			{ "name": "wipe_tower_width", "label": "wipe tower width" },
-			{ "name": "wipe_tower_rotation_angle", "label": "wipe tower angle" },
-			{ "name": "wipe_tower_bridging", "label": "wipe tower bridging" },
-			{ "name": "wipe_tower_no_sparse_layers", "label": "wipe tower no sparse layers", "type": "boolean" },
-			{ "name": "single_extruder_multi_material_priming", "label": "single extruder multi material priming", "type": "boolean" },
-			{ "name": "interface_shells", "label": "interface shells", "type": "boolean" }
+
+			{ "subgroup":  "Wipe Tower", "color":  [225, 255, 240]},
+			{ "name": "wipe_tower", "label": "enable wipe tower", "type": "boolean" },
+			{ "name": "wipe_tower_width", "label": "width" },
+			{ "name": "wipe_tower_brim_width", "label": "wipe tower brim width"},
+			{ "name": "wipe_tower_bridging", "label": "maximum bridging" },
+			{ "name": "wipe_tower_cone_angle", "label": "stabilazition cone apex angle"},
+			{ "name": "wipe_tower_extra_spacing", "label": "wipe tower purge lines spacing"},
+			{ "name": "wipe_tower_extra_flow", "label": "extra flow for purging"},
+			{ "name": "wipe_tower_no_sparse_layers", "label": "no sparse layers", "type": "boolean" },
+			{ "name": "single_extruder_multi_material_priming", "label": "prime all printing extruders", "type": "boolean" },
+
+			{ "subgroup":  "Advanced", "color":  [138, 255, 197]},
+			{ "name": "interface_shells", "label": "interface shells", "type": "boolean" },
+			{ "name": "mmu_segmented_region_interlocking_depth", "label": "interlocking depth of a segmented region"},
+			{ "name": "mmu_segmented_region_max_width", "label": "max width of a segmented region"}
 		],
 
 		"Advanced": [
+			{ "subgroup":  "Extrusion width", "color":  [225, 255, 240]},
 			{ "name": "extrusion_width", "label": "extrusion width" },
-			{ "name": "first_layer_extrusion_width", "label": "... first layer" },
-			{ "name": "perimeter_extrusion_width", "label": "... perimeter" },
-			{ "name": "external_perimeter_extrusion_width", "label": "... external perimeter" },
-			{ "name": "infill_extrusion_width", "label": "... infill" },
-			{ "name": "solid_infill_extrusion_width", "label": "... solid infill" },
-			{ "name": "top_infill_extrusion_width", "label": "... top infill" },
-			{ "name": "support_material_extrusion_width", "label": "... support material" },
+			{ "name": "first_layer_extrusion_width", "label": "first layer" },
+			{ "name": "perimeter_extrusion_width", "label": "perimeter" },
+			{ "name": "external_perimeter_extrusion_width", "label": "external perimeter" },
+			{ "name": "infill_extrusion_width", "label": "infill" },
+			{ "name": "solid_infill_extrusion_width", "label": "solid infill" },
+			{ "name": "top_infill_extrusion_width", "label": "top infill" },
+			{ "name": "support_material_extrusion_width", "label": "support material" },
+			{ "name": "automatic_extrusion_widths", "label": "auto extrusion widths calculation", "type": "boolean"},
+
+			{ "subgroup":  "Overlap", "color":  [138, 255, 197]},
 			{ "name": "infill_overlap", "label": "infill overlap" },
+
+			{ "subgroup":  "Flow", "color":  [225, 255, 240]},
 			{ "name": "bridge_flow_ratio", "label": "bridge flow ratio" },
-			{ "name": "slice_closing_radius", "label": "slice closing radius" },
-			{ "name": "resolution" },
+
+			{ "subgroup":  "Slicing", "color":  [138, 255, 197]},
+			{ "name": "slice_closing_radius", "label": "slice gap closing radius" },
+			{ "name": "slicing_mode", "label": "slicing mode", "type": "slicingmode"},
+			{ "name": "resolution", "label": "slice resolution" },
+			{ "name": "gcode_resolution", "label": "gcode resolution"},
+			{ "name": "arc_fitting", "label": "arc fitting", "type": "arcfitting"},
 			{ "name": "xy_size_compensation", "label": "XY size compensation" },
 			{ "name": "elefant_foot_compensation", "label": "elephant foot compensation" },
-			{ "name": "clip_multipart_objects", "label": "clip multipart objects", "type": "boolean" },
-			{ "name": "print_settings_id", "label": "settings id", "type": "hidden" },
-			{ "name": "threads", "label": "threads", "type": "hidden" },
-			{ "name": "inherits", "label": "inherits", "type": "hidden" }
+
+			{ "subgroup":  "Arachne perimeter generator", "color":  [225, 255, 240]},
+			{ "name": "wall_transition_angle", "label": "perimeter transition threshold angle"},
+			{ "name": "wall_transition_filter_deviation", "label": "perimeter transition filter margin"},
+			{ "name": "wall_transition_length", "label": "perimeter transition length"},
+			{ "name": "wall_distribution_count", "label": "perimeter distribution count"},
+			{ "name": "min_bead_width", "label": "min perimeter width"},
+			{ "name": "min_feature_size", "label": "min feature size"},
+
+			{ "subgroup":  "hidden"},
+			{ "name": "print_settings_id", "label": "print settings id", "type": "hidden"},
+			{ "name": "inherits", "label": "inherits", "type": "hidden"}
 		],
 
 		"Output options": [
+			{ "subgroup":  "Sequential printing", "color":  [225, 255, 240]},
 			{ "name": "complete_objects", "label": "complete objects", "type": "boolean" },
 			{ "name": "extruder_clearance_radius", "label": "extruder clearance radius" },
 			{ "name": "extruder_clearance_height", "label": "exteuder clearance height" },
+
+			{ "subgroup":  "Output file", "color":  [138, 255, 197]},
 			{ "name": "gcode_comments", "label": "G-code comments", "type": "boolean" },
-			{ "name": "gcode_label_objects", "label": "G-code label objects", "type": "boolean" },
+			{ "name": "gcode_label_objects", "label": "G-code label objects", "type": "gcodelabel" },
 			{ "name": "output_filename_format", "label": "output file format" },
+
+			{ "subgroup":  "hidden"},
+			{ "name": "gcode_substitutions", "label": "gcode substitutions", "type": "hidden"},
+
+			{ "subgroup":  "Post processing scripts", "color":  [225, 255, 240]},
 			{ "name": "post_process", "label": "post process" }
 		],
 
 		"Notes" : [
+			{ "subgroup":  "Notes", "color":  [225, 255, 240]},
 			{ "name": "notes", "label": "notes", "type": "longstring" }
 		],
 
 		"Dependencies" : [
+			{ "subgroup":  "Dependencies", "color":  [225, 255, 240]},
 			{ "name": "compatible_printers", "label": "compatible printers" },
 			{ "name": "compatible_printers_condition", "label": "compatible printers condition" }
 		]
@@ -244,16 +439,20 @@
 		"groups": [ "Physical printer" ],
 
 		"Physical printer" : [
-			{ "name": "host_type", "label": "host type" },
+			{ "subgroup":  "Extruders", "color":  [225, 255, 240]},
 			{ "name": "preset_name", "label": "preset name" },
+			{ "name": "preset_names", "label": "preset names" },
+			{ "name": "host_type", "label": "host type", "type": "hosttype" },
 			{ "name": "print_host", "label": "print host" },
-			{ "name": "printer_technology", "label": "technology" },
 			{ "name": "printhost_apikey", "label": "API key" },
-			{ "name": "printhost_authorization_type", "label": "authorization type" },
-			{ "name": "printhost_cafile", "label": "ca file" },
-			{ "name": "printhost_user", "label": "user" },
-			{ "name": "printhost_password", "label": "password" },
-			{ "name": "printhost_port", "label": "port" }
+			{ "name": "printhost_ssl_ignore_revoke", "label":  "SSL Ignore Revoke", "type":  "boolean"},
+
+			{ "name": "printhost_authorization_type", "label": "authorization type", "type": "hidden" },
+			{ "name": "printer_technology", "label": "technology", "type": "hidden" },
+			{ "name": "printhost_cafile", "label": "ca file", "type": "hidden" },
+			{ "name": "printhost_user", "label": "user", "type": "hidden" },
+			{ "name": "printhost_password", "label": "password", "type": "hidden" },
+			{ "name": "printhost_port", "label": "port", "type": "hidden" }
 		]
 	},
 
@@ -262,24 +461,53 @@
 		"groups": [ "General", "Custom G-Code", "Machine limits", "Extruder %d", "Single extruder MM Setup", "Notes" ],
 
 		"General" : [
+			{ "subgroup":  "Size and coordinates", "color":  [225, 255, 240]},
 			{ "name": "bed_shape", "label": "bed shape" },
+			{ "name": "bed_custom_model", "label": "custom bed model", "type": "hidden" },
+			{ "name": "bed_custom_texture", "label": "custom bed texture", "type": "hidden" },
 			{ "name": "max_print_height", "label": "maximum print height" },
 			{ "name": "z_offset", "label": "z offset" },
-			{ "name": "bed_custom_model", "label": "custom bed model" },
-			{ "name": "bed_custom_texture", "label": "custom bed texture" },
-			{ "name": "single_extruder_multi_material", "label": "single extruder multi material" },
-			{ "name": "gcode_flavor",  "label": "G-code flavor" },
+
+			{ "subgroup":  "Capabilities", "color":  [138, 255, 197]},
+			{ "name": "single_extruder_multi_material", "label": "single extruder multi material", "type": "boolean" },
+
+			{ "subgroup":  "Firmware", "color":  [225, 255, 240]},
+			{ "name": "gcode_flavor",  "label": "G-code flavor", "type": "gcodeflavor" },
 			{ "name": "thumbnails", "label": "thumbnails" },
-			{ "name": "silent_mode", "label": "silent mode", "type": "boolean" },
-			{ "name": "remaining_times", "label": "remaining times", "type": "boolean" },
+			{ "name": "silent_mode", "label": "supports stealth mode", "type": "boolean" },
+			{ "name": "remaining_times", "label": "supports remaining times", "type": "boolean" },
+			{ "name": "binary_gcode", "label": "supports binary G-code", "type": "boolean" },
+
+			{ "subgroup":  "Advanced", "color":  [138, 255, 197]},
 			{ "name": "use_relative_e_distances", "label": "use relative e", "type": "boolean" },
 			{ "name": "use_firmware_retraction", "label": "use firmware retraction", "type": "boolean" },
 			{ "name": "use_volumetric_e", "label": "use volumetric e", "type": "boolean" },
-			{ "name": "variable_layer_height", "label": "variable layer height", "type": "boolean" }
+			{ "name": "variable_layer_height", "label": "variable layer height", "type": "boolean" },
+			{ "name": "prefer_clockwise_movements", "label": "prefer clockwise movements", "type": "boolean" },
+
+			{ "name": "default_filament_profile", "label":  "", "type":  "hidden"},
+			{ "name": "default_print_profile", "label":  "", "type":  "hidden"},
+			{ "name": "host_type", "label":  "", "type":  "hidden"},
+			{ "name": "inherits", "label":  "", "type":  "hidden"},
+			{ "name": "print_host", "label":  "", "type":  "hidden"},
+			{ "name": "printer_model", "label":  "", "type":  "hidden"},
+			{ "name": "printer_settings_id", "label":  "", "type":  "hidden"},
+			{ "name": "printer_technology", "label":  "", "type":  "hidden"},
+			{ "name": "printer_variant", "label":  "", "type":  "hidden"},
+			{ "name": "printer_vendor", "label":  "", "type":  "hidden"},
+			{ "name": "printhost_apikey", "label":  "", "type":  "hidden"},
+			{ "name": "printhost_cafile", "label":  "", "type":  "hidden"},
+			{ "name": "thumbnails_format", "label":  "", "type":  "hidden"}
 		],
 
 		"Custom G-Code" : [
+			{ "subgroup":  "Custom G-Code", "color":  [225, 255, 240]},
 			{ "name": "start_gcode", "label": "start", "type": "longstring" },
+
+			{ "subgroup":  "Start G-Code Options", "color":  [138, 255, 197]},
+			{ "name": "autoemit_temperature_commands", "label": "emit temp commands automatically", "type": "boolean" },
+
+			{ "subgroup":  "Custom G-Code", "color":  [225, 255, 240]},
 			{ "name": "end_gcode", "label": "end", "type": "longstring" },
 			{ "name": "before_layer_gcode", "label": "before layer", "type": "longstring" },
 			{ "name": "layer_gcode", "label": "layer", "type": "longstring" },
@@ -291,54 +519,82 @@
 		],
 
 		"Machine limits" : [
-			{ "name": "machine_limits_usage",  "label": "usage", "type": "limitsusage" },
+			{ "subgroup":  "General", "color":  [225, 255, 240]},
+			{ "name": "machine_limits_usage",  "label": "how to apply limits", "type": "limitsusage" },
+
+			{ "subgroup":  "Maximum feed rates", "color":  [138, 255, 197]},
 			{ "name": "machine_max_feedrate_x", "label": "maximum feedrate X" },
 			{ "name": "machine_max_feedrate_y", "label": "maximum feedrate Y" },
 			{ "name": "machine_max_feedrate_z", "label": "maximum feedrate Z" },
 			{ "name": "machine_max_feedrate_e",  "label": "maximum feedrate E" },
+
+			{ "subgroup":  "Maximum accelerations", "color":  [225, 255, 240]},
 			{ "name": "machine_max_acceleration_x", "label": "maximum acceleration X" },
 			{ "name": "machine_max_acceleration_y", "label": "maximum acceleration Y" },
 			{ "name": "machine_max_acceleration_z", "label": "maximum acceleration Z" },
 			{ "name": "machine_max_acceleration_e",  "label": "maximum acceleration E" },
+			{ "name": "machine_max_acceleration_travel",  "label": "maximum acceleration while traveling", "type": "hidden" },
 			{ "name": "machine_max_acceleration_extruding", "label": "maximum acceleration extruding" },
 			{ "name": "machine_max_acceleration_retracting",  "label": "maximum acceleration retracting" },
+
+			{ "subgroup":  "Jerk limits", "color":  [138, 255, 197]},
 			{ "name": "machine_max_jerk_x", "label": "maximum jerk X" },
 			{ "name": "machine_max_jerk_y", "label": "maximum jerk Y" },
 			{ "name": "machine_max_jerk_z", "label": "maximum jerk Z" },
 			{ "name": "machine_max_jerk_e",  "label": "maximum jerk E" },
-			{ "name": "machine_min_extruding_rate", "label": "minimum extrude rate" },
-			{ "name": "machine_min_travel_rate", "label": "minimum travel rate" }
+
+			{ "name": "machine_min_extruding_rate", "label": "minimum extrude rate", "type": "hidden" },
+			{ "name": "machine_min_travel_rate", "label": "minimum travel rate", "type": "hidden" }
 		],
 
 		"Extruder %d" : [
+			{ "subgroup":  "Size", "color":  [225, 255, 240]},
 			{ "name": "nozzle_diameter", "label": "nozzle diameter" },
+			{ "name": "nozzle_high_flow", "label": "high flow nozzle", "type": "boolean" },
+
+			{ "subgroup":  "Preview", "color":  [138, 255, 197]},
+			{ "name":  "extruder_colour", "label": "extruder color", "type": "color"},
+
+			{ "subgroup":  "Layer height limits", "color":  [225, 255, 240]},
 			{ "name": "min_layer_height", "label": "minimum layer height" },
 			{ "name": "max_layer_height", "label": "maximum layer height" },
+
+			{ "subgroup":  "Position (for multi extruder)", "color":  [138, 255, 197]},
 			{ "name": "extruder_offset", "label": "extruder offset" },
-			{ "name": "retract_length",  "label": "retract length" },
+
+			{ "subgroup":  "Travel lift", "color":  [225, 255, 240]},
 			{ "name": "retract_lift", "label": "retract lift" },
-			{ "name": "retract_lift_above", "label": "retract above layer" },
-			{ "name": "retract_lift_below", "label": "retract below layer" },
+			{ "name": "travel_ramping_lift", "label":  "Use ramping lift", "type":  "boolean"},
+			{ "name": "travel_max_lift", "label":  "maximum ramping lift"},
+			{ "name": "travel_slope", "label":  "ramping slope angle"},
+			{ "name": "travel_lift_before_obstacle", "label":  "steeper ramp before obstacles", "type":  "boolean"},
+			{ "name": "retract_lift_above", "label": "only lift above Z" },
+			{ "name": "retract_lift_below", "label": "only lift below Z" },
+
+			{ "subgroup":  "Retraction", "color":  [138, 255, 197]},
+			{ "name": "retract_length",  "label": "retract length" },
 			{ "name": "retract_speed", "label": "retract speed" },
 			{ "name": "deretract_speed", "label": "deretract speed" },
-			{ "name": "retract_restart_extra",  "label": "retract restart extra" },
-			{ "name": "retract_before_travel", "label": "retract before travel" },
+			{ "name": "retract_restart_extra",  "label": "deretract extra length" },
+			{ "name": "retract_before_travel", "label": "minimum travel after retraction" },
 			{ "name": "retract_layer_change", "label": "retract layer change", "type": "boolean" },
-			{ "name": "wipe", "label": "wipe", "type": "boolean" },
-			{ "name": "retract_before_wipe", "label": "retract before wipe" },
+			{ "name": "wipe", "label": "wipe while retracting", "type": "boolean" },
+			{ "name": "retract_before_wipe", "label": "retract amount before wipe" },
+
+			{ "subgroup":  "Retraction when tool is disabled", "color":  [225, 255, 240]},
 			{ "name": "retract_length_toolchange",  "label": "retract length toolchange" },
-			{ "name": "retract_restart_extra_toolchange", "label": "retract restart extra toolchange" },
-			{ "name": "extruder_colour", "label": "extruder color" }
+			{ "name": "retract_restart_extra_toolchange", "label": "retract restart extra toolchange" }
 		],
 
 		"Single extruder MM Setup": [
+			{ "subgroup":  "Single extruder multimaterial parameters", "color":  [225, 255, 240]},
 			{ "name": "cooling_tube_retraction", "label": "Cooling Tube Position" },
 			{ "name": "cooling_tube_length", "label": "Cooling tube length" },
 			{ "name": "parking_pos_retraction", "label": "Filament parking position" },
 			{ "name": "extra_loading_move", "label": "Extra loading distance" },
+			{ "name": "multimaterial_purging", "label": "Purging volume" },
 			{ "name": "high_current_on_filament_swap", "label": "High extrusion current on filament swap", "type": "boolean" }
 		],
-		
 
 		"Notes" : [
 			{ "name": "printer_notes", "label": "notes", "type": "longstring" }
@@ -346,6 +602,27 @@
 	},
 	
 	"choicetypes": {
+		"arcfitting": [
+			["Enabled", "emit_center"],
+			["Disabled", "disabled"]
+		],
+		"brimtype": [
+			["No brim", "no_brim"],
+			["Outer brim only", "outer_only"],
+			["Inner brim only", "inner_only"],
+			["Outer and Inner brim", "outer_and_inner"]
+
+		],
+		"ensureverticalshell": [
+			["Enabled", "enabled"],
+			["Partial", "partial"],
+			["Disabled", "disabled"]
+		],
+		"fuzzyskin": [
+			["None", "none"],
+			["Outside Walls", "external"],
+			["All walls", "all"]
+		],
 		"infill": [ 
 			[ "Rectilinear", "rectilinear" ],
 			[ "Aligned Rectilinear", "alignedrectilinear" ],
@@ -366,21 +643,32 @@
 		],
 		"shellinfill": [
 			[ "Rectilinear", "rectilinear" ],
+			[ "Monotonic", "monotonic" ],
+			[ "Monotonic Lines", "monotoniclines" ],
 			[ "Aligned Rectininear", "alignedrectilinear" ],
 			[ "Concentric", "concentric" ],
 			[ "Hilbert Curve", "hilbertcurve" ],
 			[ "Archimedean Chords", "archimedeanchords" ],
-			[ "Octogram Spiral", "octogramspiral" ],
-			[ "Monotonic", "monotonic" ]
+			[ "Octogram Spiral", "octogramspiral" ]
+		],
+		"supportstyle": [
+			["Organic", "organic"],
+			["Grid", "grid"],
+			["Snug", "snug"]
 		],
 		"supportinfill": [ 
 			[ "Rectilinear", "rectilinear" ],
 			[ "Rectilinear grid", "rectilinear-grid" ],
 			[ "Honeycomb", "honeycomb" ]
 		],
+		"supportintinfill": [
+			["Default", "auto"],
+			["Rectilinear", "rectilinear"],
+			["Concentric", "concentric"]
+		],
 		"ironing": [ 
 			[ "All Top Surfaces", "top" ],
-			[ "Topmost Surface", "topmost" ],
+			[ "Topmost Surface only", "topmost" ],
 			[ "All solid surfaces", "solid" ]
 		],
 		"seamposition": [ 
@@ -389,12 +677,108 @@
 			[ "Aligned", "aligned" ],
 			[ "Rear", "rear" ]
 		],
+		"draftshield": [
+			["Disabled", "disabled"],
+			["Limited", "limited"],
+			["Enabled", "enabled"]
+		],
 		"limitsusage": [ 
 			[ "Emit to G-code", "emit_to_gcode" ],
 			[ "Use for time estimate", "time_estimate_only" ],
 			[ "Ignore", "ignore" ]
+		],
+		"perimetergenerator": [
+			["Arachne", "arachne"],
+			["Classic", "classic"]
+		],
+		"topperimetertype": [
+			["Disabled", "none"],
+			["All top surfaces", "top"],
+			["Topmost surface only", "topmost"]
+		],
+		"scarfplacement": [
+			["Nowhere", "nowhere"],
+			["Everywhere", "everywhere"],
+			["Contours", "contours"]
+		],
+		"slicingmode": [
+			["Regular", "regular"],
+			["Even-odd", "even_odd"],
+			["Close Holes", "close_holes"]
+		],
+		"topcontactz": [
+			["0 (soluble)", "0"],
+			["0.1 (detachable)", "0.1"],
+			["0.2 (detachable)", "0.2"]
+		],
+		"bottomcontactz": [
+			["Same as top", "0"],
+			["0.1 (detachable)", "0.1"],
+			["0.2 (detachable)", "0.2"]
+		],
+		"topinterfacelayers": [
+			["0 (off)", "0"],
+			["1 (light)", "1"],
+			["2 (default)", "2"],
+			["3 (heavy)", "3"]
+		],
+		"bottominterfacelayers": [
+			["Same as top", "-1"],
+			["0 (off)", "0"],
+			["1 (light)", "1"],
+			["2 (default)", "2"],
+			["3 (heavy)", "3"]
+		],
+		"gcodelabel": [
+			["Disabled", "disabled"],
+			["Octoprint comments", "octoprint"],
+			["Firmware-specific", "firmware"]
+		],
+		"hosttype": [
+			["OctoPrint", "octoprint"],
+			["Klipper(via Moonraker)", "moonraker"],
+			["Duet", "duet"],
+			["FlashAir", "flashair"],
+			["AstroBox", "astrobox"],
+			["Repetier", "Repetier"],
+			["MKS", "mks"]
+		],
+		"gcodeflavor": [
+			["RepRap/Sprinter", "reprap"],
+			["RepRapFirmware", "reprapfirmware"],
+			["Repetier", "repetier"],
+			["Teacup", "teacup"],
+			["MakerWare(MakerBot)", "makerware"],
+			["Marlin(legacy)", "marlin"],
+			["Marlin 2", "marlin2"],
+			["Klipper", "klipper"],
+			["Sailfish(MakerBot)", "sailfish"],
+			["Mach3/LinuxCNC", "mach3"],
+			["Machinekit", "machinekit"],
+			["Smoothie", "smoothie"],
+			["No extrusion", "no-extrusion"]
+		],
+		"filamenttype": [
+			["PLA", "PLA"],
+			["PET", "PET"],
+			["ABS", "ABS"],
+			["ASA", "ASA"],
+			["FLEX", "FLEX"],
+			["HIPS", "HIPS"],
+			["EDGE", "EDGE"],
+			["NGEN", "NGEN"],
+			["PA", "PA"],
+			["NYLON", "NYLON"],
+			["xPVA", "PVA"],
+			["PC", "PC"],
+			["PP", "PP"],
+			["PEI", "PEI"],
+			["PEEK", "PEEK"],
+			["POM", "POM"],
+			["PSU", "PSU"],
+			["PVDF", "PVDF"],
+			["SCAFF", "SCAFF"]
 		]
 	}
-		
 }
 

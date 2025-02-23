@@ -6,6 +6,7 @@ import logging
 
 INIFILE = "cfgslicer.ini"
 
+
 class Settings:
 	def __init__(self, folder):
 		# default values

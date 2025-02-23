@@ -1,14 +1,14 @@
 import wx
 import re
 
+
 class IniFileDlg(wx.Dialog):
 	def __init__(self, parent, cat, flist):
 		wx.Dialog.__init__(self, parent, wx.ID_ANY, "")
 		self.parent = parent
 		self.category = cat
 		self.flist = [x for x in flist]
-				
-		
+
 		vsizer = wx.BoxSizer(wx.VERTICAL)
 		vsizer.AddSpacer(20)
 		
@@ -53,12 +53,12 @@ class IniFileDlg(wx.Dialog):
 			
 		nfn = self.cbFiles.GetValue()
 			
-		if re.findall(r'[^A-Za-z0-9_\-\. ]', nfn):
+		if re.findall(r'[^A-Za-z0-9_\-. ]', nfn):
 			dlg = wx.MessageDialog(self,
 				"Only alpha-numeric, dashes, underscores, or spaces allowed",
 				"Invalid File Name",
 				wx.OK | wx.ICON_WARNING)
-			rc = dlg.ShowModal()
+			dlg.ShowModal()
 			dlg.Destroy()
 			return
 		

@@ -4,6 +4,7 @@ import wx.propgrid as wxpg
 from cfgexceptions import CfgInvalidColor
 from helpers import parseColorValue
 
+
 class ColorDialogAdapter(wxpg.PGEditorDialogAdapter):
 	def __init__(self, prop):
 		wxpg.PGEditorDialogAdapter.__init__(self)
@@ -38,6 +39,7 @@ class ColorDialogAdapter(wxpg.PGEditorDialogAdapter):
 		cval = "#%02X%02X%02X" % (r, g, b)
 		self.SetValue(cval)
 		return True
+
 
 class ColorProperty(wxpg.StringProperty):
 	def __init__(self, label, name, value):

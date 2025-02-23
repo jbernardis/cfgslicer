@@ -142,10 +142,13 @@ class CfgSlicer:
 		return os.path.join(self.root, cat)
 		
 	def writeModified(self):
+		flist = []
 		for cat in self.fileMap:
 			for f in self.fileMap[cat]:
 				if self.fileMap[cat][f].isModified():
+					flist.append(f)
 					self.writeProperties(cat, f)
+		return flist
 					
 	def copyFile(self, cat, fn, nfn, force=False):
 		if cat not in self.fileMap:
@@ -178,8 +181,7 @@ class CfgSlicer:
 			return None
 				
 		return self.fileMap[self.extruderCategory][fn].getExtruderCount()
-	
-	
+
 	def getAttribute(self, cat, fn, name):
 		if cat not in self.fileMap:
 			raise CfgUnknownCategory(cat)

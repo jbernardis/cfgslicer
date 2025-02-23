@@ -3,14 +3,17 @@ import json
 STRINGTYPE = "string"
 LONGSTRINGTYPE = "longstring"
 COLORTYPE = "color"
+HIDDEN = "hidden"
+BOOLEAN = "boolean"
+
 INFILLTYPE = "infill"
 SHELLINFILLTYPE = "shellinfill"
 SUPPORTINFILLTYPE = "supportinfill"
 IRONINGTYPE = "ironing"
 SEAMPOSTYPE = "seamposition"
 LIMITSUSAGE = "limitsusage"
-HIDDEN = "hidden"
-BOOLEAN = "boolean"
+ENSUREVERTICALSHELL = "ensureverticalshell"
+
 
 class AttributeMap:
 	def __init__(self, fn):	
@@ -22,19 +25,20 @@ class AttributeMap:
 		for c in self.attrMap["categories"]:
 			for grp in self.attrMap[c]["groups"]:
 				for a in self.attrMap[c][grp]:
-					try:
-						a["label"]
-					except KeyError:
-						a["label"] = a["name"]
-						
-					try:
-						a["type"]
-					except KeyError:
-						a["type"] = STRINGTYPE
+					if "subgroup" not in a:
+						try:
+							a["label"]
+						except KeyError:
+							a["label"] = a["name"]
+
+						try:
+							a["type"]
+						except KeyError:
+							a["type"] = STRINGTYPE
 						
 		self.extCategory = self.attrMap["extruders"]["category"]
 		self.extGroup = self.attrMap["extruders"]["group"]
-		self.extAttr = [x["name"] for x in self.attrMap[self.extCategory][self.extGroup]]
+		self.extAttr = [x["name"] for x in self.attrMap[self.extCategory][self.extGroup] if "name" in x]
 			
 	def getCategories(self):
 		return self.attrMap["categories"]
@@ -72,6 +76,9 @@ class AttributeMap:
 	def getSingleAttribute(self, cat, name):
 		al = self.getCatAttrs(cat)
 		for a in al:
+			if "subgroup" in a:
+				continue
+
 			if a["name"] == name:
 				return a
 			
@@ -85,6 +92,12 @@ class AttributeMap:
 	
 	def getChoices(self, ctype):
 		return self.attrMap["choicetypes"][ctype]
+
+	def getChoiceTypes(self):
+		return self.attrMap["choicetypes"].keys()
+
+	def IsChoiceType(self, ctype):
+		return ctype in self.attrMap["choicetypes"]
 
 	def __call__(self, cat):
 		self.iterCat = cat

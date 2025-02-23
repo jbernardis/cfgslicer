@@ -1,5 +1,6 @@
 from cfgexceptions import CfgInvalidColor
 
+
 def parseColorValue(pv):
 	if pv is None:
 		raise CfgInvalidColor
