@@ -70,9 +70,24 @@ class CfgSlicer:
 		self.dirs = dirs
 		self.attrMap = attrMap
 		self.missingDirs = []
+		self.slicerVersion = ""
 		self.extruderCategory = self.attrMap.getExtruderCategory()
+		self.loadSlicerVersion(os.path.join(root, "PrusaSlicer.ini"))
 		self.loadAttributes()
-		
+
+	def loadSlicerVersion(self, path):
+		parser = RawConfigParser()
+		with open(path) as stream:
+			parser.read_string("[top]\n" + stream.read())
+
+		for k, v in parser.items("top"):
+			if k == "version":
+				self.slicerVersion = v
+				break
+
+	def getSlicerVersion(self):
+		return self.slicerVersion
+
 	def loadAttributes(self):
 		self.fileMap = {}
 		self.fileExt = {}

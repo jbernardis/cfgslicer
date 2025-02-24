@@ -118,7 +118,14 @@ class FilterDlg(wx.Dialog):
 			dlg.Destroy()
 
 		else:
-			self.attrValue = "123"
+			dlg = wx.TextEntryDialog(self, "enter value", "enter value", "")
+
+			rc = dlg.ShowModal()
+			if rc == wx.ID_OK:
+				self.attrValue = dlg.GetValue()
+			else:
+				self.attrValue = None
+			dlg.Destroy()
 
 		self.bOK.Enable(self.attrValue is not None)
 		self.stValue.SetLabel("" if self.attrValue is None else self.attrValue)

@@ -29,6 +29,7 @@ MENU_TOOLS_UNBUNDLE = 104
 MENU_SETTINGS = 200
 MENU_SETTINGS_ROOT = 201
 MENU_SETTINGS_ATTRIB = 202
+MENU_SETTINGS_VERSION = 203
 
 
 class CfgMain(wx.Frame):
@@ -46,6 +47,7 @@ class CfgMain(wx.Frame):
 		menuSettings = wx.Menu()
 		menuSettings.Append(MENU_SETTINGS_ROOT, "Slicer Configuration Root", "set new location for slicer configuration files")
 		menuSettings.Append(MENU_SETTINGS_ATTRIB, "Attribute map", "set new location for slicer attributes map")
+		menuSettings.Append(MENU_SETTINGS_VERSION, "Update version", "set new attribute map version to that of the slicer")
 		menuBar.Append(menuSettings, "Settings")
 		
 		menuTools = wx.Menu()
@@ -78,7 +80,8 @@ class CfgMain(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.panel.onUnbundle, id=MENU_TOOLS_UNBUNDLE)
 		self.Bind(wx.EVT_MENU, self.panel.onRoot, id=MENU_SETTINGS_ROOT)
 		self.Bind(wx.EVT_MENU, self.panel.onAttrib, id=MENU_SETTINGS_ATTRIB)
-		
+		self.Bind(wx.EVT_MENU, self.panel.onVersion, id=MENU_SETTINGS_VERSION)
+
 	def onClose(self, _):
 		if not self.panel.okToClose():
 			return
@@ -106,7 +109,7 @@ class CfgPanel(wx.Panel):
 			self.badConfig = True
 		else:
 			self.badConfig = False
-		
+
 		self.extGroup = self.attrMap.getExtruderGroup()
 				
 		self.nchecked = 0
@@ -237,7 +240,17 @@ class CfgPanel(wx.Panel):
 		self.Fit()
 		
 		self.loadCategory(self.currentCategory)
-		
+		wx.CallAfter(self.checkVersions)
+
+	def checkVersions(self):
+		sversion = self.cfg.getSlicerVersion()
+		aversion = self.attrMap.getAttributeVersion()
+		if aversion != sversion:
+			msg = "Slicer version %s\n does not match attribute version %s" % (sversion, aversion)
+			dlg = wx.MessageDialog(self, msg, "Version mismatch", wx.OK | wx.ICON_WARNING)
+			dlg.ShowModal()
+			dlg.Destroy()
+
 	def setTitle(self):
 		ts = self.titleString + " - " + self.settings.root
 		if self.propertiesChanged:
@@ -916,6 +929,9 @@ class CfgPanel(wx.Panel):
 		self.settings.save()
 		
 		self.restartRequired("Attribute map")
+
+	def onVersion(self, _):
+		self.attrMap.updateAttributeVersion(self.cfg.getSlicerVersion())
 				
 	def restartRequired(self, msg):
 		dlg = wx.MessageDialog(self,

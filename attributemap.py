@@ -16,7 +16,8 @@ ENSUREVERTICALSHELL = "ensureverticalshell"
 
 
 class AttributeMap:
-	def __init__(self, fn):	
+	def __init__(self, fn):
+		self.attrFileName = fn
 		self.extGroup = None
 		self.extAttr = []
 		with open(fn, "r") as fp:
@@ -39,6 +40,20 @@ class AttributeMap:
 		self.extCategory = self.attrMap["extruders"]["category"]
 		self.extGroup = self.attrMap["extruders"]["group"]
 		self.extAttr = [x["name"] for x in self.attrMap[self.extCategory][self.extGroup] if "name" in x]
+		try:
+			self.attrVersion = self.attrMap["version"]
+		except KeyError:
+			self.attrVersion = "Unknown"
+
+	def updateAttributeVersion(self, newVersion):
+		with open(self.attrFileName, "r") as fp:
+			attr = json.load(fp)
+		attr["version"] = newVersion
+		with open(self.attrFileName, "w") as fp:
+			json.dump(attr, fp, indent=4)
+
+	def getAttributeVersion(self):
+		return self.attrVersion
 			
 	def getCategories(self):
 		return self.attrMap["categories"]
